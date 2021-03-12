@@ -1,5 +1,6 @@
 import wx
 import wx.adv as adv
+import pandas as pd
 
 from functools import partial
 
@@ -18,6 +19,8 @@ class DataExplorerApp(wx.App):
 		self.filter_columns = {}
 		self.filter_dialog = None
 
+		self.data = None
+
 		# Frames.
 		self.csv_frame = wd.TabularDisplayFrame(None, title=self.default_title)
 
@@ -26,34 +29,34 @@ class DataExplorerApp(wx.App):
 
 		## File.
 		menu = wx.Menu()
-		menuBar.Append(menu, '&File')
+		menuBar.Append(menu, 'File')
 
-		item = menu.Append(wx.ID_OPEN, '&Open...')
+		item = menu.Append(wx.ID_OPEN, 'Open...')
 		self.Bind(wx.EVT_MENU, self.OnMenuFileOpen, item)
 
-		self.close_menu_item = menu.Append(wx.ID_CLOSE, '&Close')
+		self.close_menu_item = menu.Append(wx.ID_CLOSE, 'Close')
 		self.close_menu_item.Enable(False)
 		self.Bind(wx.EVT_MENU, self.OnMenuFileClose, self.close_menu_item)
 
 		menu.AppendSeparator()
 
-		self.filter_menu_item = menu.Append(wx.ID_ANY, '&Filters...')
+		self.filter_menu_item = menu.Append(wx.ID_ANY, 'Filters...')
 		self.filter_menu_item.Enable(False)
 		self.Bind(wx.EVT_MENU, self.OnMenuFileFilters, self.filter_menu_item)
 
 		menu.AppendSeparator()
 
-		item = menu.Append(wx.ID_EXIT, 'E&xit')
+		item = menu.Append(wx.ID_EXIT, 'Exit')
 		self.Bind(wx.EVT_MENU, self.OnMenuFileExit, item)
 
 		## Plot.
 		menu = wx.Menu()
-		menuBar.Append(menu, '&Plot')
+		menuBar.Append(menu, 'Plot')
 
 		menu.Append(wx.ID_ANY, ' 2D:').Enable(False)
 
-		self.two_dimensional_menu = menu.Append(wx.ID_ANY, '&Curve...')
-		self.Bind(wx.EVT_MENU, wd.NotImplemented, self.two_dimensional_menu)
+		self.two_dimensional_menu = menu.Append(wx.ID_ANY, 'Curve...')
+		#self.Bind(wx.EVT_MENU, wd.NotImplemented, self.two_dimensional_menu)
 		self.Bind(wx.EVT_MENU, self.create_curve, self.two_dimensional_menu) 
 		#partial(self.create_plot, formats.two_dimensional),self.two_dimensional_menu)
 
@@ -61,10 +64,10 @@ class DataExplorerApp(wx.App):
 
 		menu.Append(wx.ID_ANY, ' 3D:').Enable(False)
 
-		self.colormapped_menu = menu.Append(wx.ID_ANY, '&Colormapped...')
+		self.colormapped_menu = menu.Append(wx.ID_ANY, 'Colormapped...')
 		self.Bind(wx.EVT_MENU, wd.NotImplemented, self.colormapped_menu) # self.Bind(wx.EVT_MENU, partial(self.create_plot, formats.colormapped), self.colormapped_menu)
 
-		self.surface_menu = menu.Append(wx.ID_ANY, '&Surface...')
+		self.surface_menu = menu.Append(wx.ID_ANY, 'Surface...')
 		self.Bind(wx.EVT_MENU, wd.NotImplemented,  self.surface_menu) # self.Bind(wx.EVT_MENU, partial(self.create_plot, formats.surface), self.surface_menu)
 
 		menu.AppendSeparator()
@@ -124,15 +127,21 @@ class DataExplorerApp(wx.App):
 		# 	if not status or format in available_formats:
 		# 		menu.Enable(status)
 
-	def create_curve(self):
-		pass
+	def create_curve(self, format):
+		headings, rows, types = self.csv_frame.display_panel.GetValue(types=[type])
+		frame = wx.Frame(None, -1, 'Plotter')
+		plotter = wd.create_plot_notebook(frame)
+		axes1 = plotter.add('figure 1').gca()
+		axes1.plot([1, 2, 3], [2, 1, 4])
+		axes2 = plotter.add('figure 2').gca()
+		axes2.plot([1, 2, 3, 4, 5], [2, 1, 4, 2, 3])
+		frame.Show()
+		# app.MainLoop()
 
 	def create_plot(self, format, evt=None, type='scalar'):
 		"""
 		Open up a dialog to configure the selected plot format.
 		"""
-
-		headings, rows, types = self.csv_frame.display_panel.GetValue(types=[type])
 		# available_formats[format](self.csv_frame, headings, rows).Show()
 
 	def OnMenuFileOpen(self, evt=None):
@@ -154,6 +163,8 @@ class DataExplorerApp(wx.App):
 
 		self.filter_menu_item.Enable(True)
 		self.close_menu_item.Enable(True)
+
+		self.data = pd.DataFrame(values[1:], columns=values[0])
 
 	def OnMenuFileClose(self, evt=None):
 		self.csv_frame.display_panel.SetValue([], [])

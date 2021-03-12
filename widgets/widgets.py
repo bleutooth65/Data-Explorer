@@ -93,7 +93,7 @@ class VirtualListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin):
 		self.ItemCount = len(data)
 
 		if self.ItemCount > 0:
-			self.display_data = np.zeros(data.shape, dtype='|S{0}'.format(self.max_value_len))
+			self.display_data = np.zeros(data.shape, dtype=f'|S{self.max_value_len}')
 
 			for i, _ in enumerate(self.headings):
 				# Truncate for display.
@@ -209,7 +209,7 @@ class TabularDisplayPanel(wx.Panel):
 		# Ensure that all columns have a header.
 		for i, header in enumerate(headers):
 			if not header:
-				headers[i] = 'Column {0}'.format(i + 1)
+				headers[i] = f'Column {i + 1}'
 
 		self.SetValue(headers, rows)
 
@@ -246,7 +246,6 @@ class Plot(wx.Panel):
         sizer.Add(self.toolbar, 0, wx.LEFT | wx.EXPAND)
         self.SetSizer(sizer)
 
-
 class PlotNotebook(wx.Panel):
     def __init__(self, parent, id=-1):
         wx.Panel.__init__(self, parent, id=id)
@@ -259,3 +258,21 @@ class PlotNotebook(wx.Panel):
         page = Plot(self.nb)
         self.nb.AddPage(page, name)
         return page.figure
+
+def create_plot_notebook(frame):
+	plotter = PlotNotebook(frame)
+	return plotter
+
+# def demo():
+#     app = wx.App()
+#     frame = wx.Frame(None, -1, 'Plotter')
+#     plotter = PlotNotebook(frame)
+#     axes1 = plotter.add('figure 1').gca()
+#     axes1.plot([1, 2, 3], [2, 1, 4])
+#     axes2 = plotter.add('figure 2').gca()
+#     axes2.plot([1, 2, 3, 4, 5], [2, 1, 4, 2, 3])
+#     frame.Show()
+#     app.MainLoop()
+
+# if __name__ == "__main__":
+#     demo()
