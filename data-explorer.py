@@ -1,12 +1,16 @@
-from sys import winver
 import wx
 import wx.adv as adv
+
+from functools import partial
 
 import functions.functions as fn
 import widgets.widgets as wd
 
 
 class DataExplorerApp(wx.App):
+	'''
+	Class which encompasses the entirety of the Data Explorer
+	'''
 	default_title = 'Data Explorer'
 
 	def OnInit(self):
@@ -15,7 +19,7 @@ class DataExplorerApp(wx.App):
 		self.filter_dialog = None
 
 		# Frames.
-		self.csv_frame = wx.Frame(None, title=self.default_title) #TabularDisplayFrame(None, title=self.default_title)
+		self.csv_frame = wd.TabularDisplayFrame(None, title=self.default_title)
 
 		# Menu.
 		menuBar = wx.MenuBar()
@@ -27,8 +31,9 @@ class DataExplorerApp(wx.App):
 		item = menu.Append(wx.ID_OPEN, '&Open...')
 		self.Bind(wx.EVT_MENU, self.OnMenuFileOpen, item)
 
-		item = menu.Append(wx.ID_CLOSE, '&Close')
-		self.Bind(wx.EVT_MENU, self.OnMenuFileClose, item)
+		self.close_menu_item = menu.Append(wx.ID_CLOSE, '&Close')
+		self.close_menu_item.Enable(False)
+		self.Bind(wx.EVT_MENU, self.OnMenuFileClose, self.close_menu_item)
 
 		menu.AppendSeparator()
 
@@ -48,27 +53,26 @@ class DataExplorerApp(wx.App):
 		menu.Append(wx.ID_ANY, ' 2D:').Enable(False)
 
 		self.two_dimensional_menu = menu.Append(wx.ID_ANY, '&Curve...')
-		self.Bind(wx.EVT_MENU, wd.NotImplemented, self.two_dimensional_menu) #partial(self.create_plot, formats.two_dimensional),self.two_dimensional_menu)
+		self.Bind(wx.EVT_MENU, wd.NotImplemented, self.two_dimensional_menu)
+		self.Bind(wx.EVT_MENU, self.create_curve, self.two_dimensional_menu) 
+		#partial(self.create_plot, formats.two_dimensional),self.two_dimensional_menu)
 
 		menu.AppendSeparator()
 
 		menu.Append(wx.ID_ANY, ' 3D:').Enable(False)
 
 		self.colormapped_menu = menu.Append(wx.ID_ANY, '&Colormapped...')
-		# self.Bind(wx.EVT_MENU, partial(self.create_plot, formats.colormapped),
-		# 		self.colormapped_menu)
+		self.Bind(wx.EVT_MENU, wd.NotImplemented, self.colormapped_menu) # self.Bind(wx.EVT_MENU, partial(self.create_plot, formats.colormapped), self.colormapped_menu)
 
 		self.surface_menu = menu.Append(wx.ID_ANY, '&Surface...')
-		# self.Bind(wx.EVT_MENU, partial(self.create_plot, formats.surface),
-		# 		self.surface_menu)
+		self.Bind(wx.EVT_MENU, wd.NotImplemented,  self.surface_menu) # self.Bind(wx.EVT_MENU, partial(self.create_plot, formats.surface), self.surface_menu)
 
 		menu.AppendSeparator()
 
 		menu.Append(wx.ID_ANY, ' List:').Enable(False)
 
 		self.waveforms_menu = menu.Append(wx.ID_ANY, '&Waveforms...')
-		# self.Bind(wx.EVT_MENU, partial(self.create_plot, formats.waveforms, type='list'),
-		# 		self.waveforms_menu)
+		self.Bind(wx.EVT_MENU, wd.NotImplemented, self.waveforms_menu) # self.Bind(wx.EVT_MENU, partial(self.create_plot, formats.waveforms, type='list'), self.waveforms_menu)
 
 		## Math.
 		menu = wx.Menu()
@@ -120,6 +124,9 @@ class DataExplorerApp(wx.App):
 		# 	if not status or format in available_formats:
 		# 		menu.Enable(status)
 
+	def create_curve(self):
+		pass
+
 	def create_plot(self, format, evt=None, type='scalar'):
 		"""
 		Open up a dialog to configure the selected plot format.
@@ -129,25 +136,24 @@ class DataExplorerApp(wx.App):
 		# available_formats[format](self.csv_frame, headings, rows).Show()
 
 	def OnMenuFileOpen(self, evt=None):
-		# try:
-		# 	result = load_csv(self.csv_frame)
-		# except IOError as e:
-		# 	MessageDialog(self.csv_frame, str(e), 'Could not load data').Show()
-		# 	return
+		try:
+			has_header, values, filename = fn.load_csv(self.csv_frame)
+		except IOError as e:
+			wx.MessageDialog(self.csv_frame, str(e), 'Could not load data').Show()
+			return
 
-		# if result is None:
-		# 	return
-		# else:
-		# 	self.OnMenuFileClose()
+		if not bool(has_header or values or filename):
+			return
+		else:
+			self.OnMenuFileClose()
 
-		# has_header, values, filename = result
-
-		# self.csv_frame.display_panel.from_csv_data(has_header, values)
-		# self.csv_frame.Title = '{0} - {1}'.format(filename, self.default_title)
+		self.csv_frame.display_panel.from_csv_data(has_header, values)
+		self.csv_frame.Title = f'{filename} - {self.default_title}'
 
 		self.update_plot_menus(len(self.csv_frame.display_panel) > 0)
 
 		self.filter_menu_item.Enable(True)
+		self.close_menu_item.Enable(True)
 
 	def OnMenuFileClose(self, evt=None):
 		self.csv_frame.display_panel.SetValue([], [])
@@ -226,9 +232,9 @@ class DataExplorerApp(wx.App):
 	def OnMenuHelpAbout(self, evt=None):
 		info = adv.AboutDialogInfo()
 		info.SetName('Data Explorer')
-		info.SetDescription('An application for displaying data in tabular and graphical form.\n'
-			'\n'
-			# 'Using Spanish Acquisition version {0}.'.format(VERSION)
+		info.SetDescription('''An application for displaying data in tabular and graphical form.\n'
+		Written by Stephen Harrigan using code from Dmitri Iouchtchenko.
+		'''
 		)
 
 		adv.AboutBox(info)

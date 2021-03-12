@@ -1,5 +1,17 @@
+'''
+File which contains all of the custom widgets created for the Data Explorer
+'''
+
 import wx
 import numpy as np
+
+import wx.lib.agw.aui as aui
+import wx.lib.mixins.inspection as wit
+
+import matplotlib as mpl
+from matplotlib.backends.backend_wxagg import (
+    FigureCanvasWxAgg as FigureCanvas,
+    NavigationToolbar2WxAgg as NavigationToolbar)
 
 from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin
 
@@ -34,7 +46,7 @@ class VirtualListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin):
 	A generic virtual list.
 	"""
 
-	max_value_len = 10 # Characters.
+	max_value_len = 20 # Characters.
 
 	@staticmethod
 	def find_type(value):
@@ -220,3 +232,30 @@ class TabularDisplayFrame(wx.Frame):
 		frame_box.Add(self.display_panel, proportion=1, flag=wx.EXPAND)
 
 		self.SetSizer(frame_box)
+
+class Plot(wx.Panel):
+    def __init__(self, parent, id=-1, dpi=None, **kwargs):
+        wx.Panel.__init__(self, parent, id=id, **kwargs)
+        self.figure = mpl.figure.Figure(dpi=dpi, figsize=(2, 2))
+        self.canvas = FigureCanvas(self, -1, self.figure)
+        self.toolbar = NavigationToolbar(self.canvas)
+        self.toolbar.Realize()
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.canvas, 1, wx.EXPAND)
+        sizer.Add(self.toolbar, 0, wx.LEFT | wx.EXPAND)
+        self.SetSizer(sizer)
+
+
+class PlotNotebook(wx.Panel):
+    def __init__(self, parent, id=-1):
+        wx.Panel.__init__(self, parent, id=id)
+        self.nb = aui.AuiNotebook(self)
+        sizer = wx.BoxSizer()
+        sizer.Add(self.nb, 1, wx.EXPAND)
+        self.SetSizer(sizer)
+
+    def add(self, name="plot"):
+        page = Plot(self.nb)
+        self.nb.AddPage(page, name)
+        return page.figure
