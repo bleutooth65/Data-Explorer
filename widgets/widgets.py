@@ -263,6 +263,56 @@ def create_plot_notebook(frame):
 	plotter = PlotNotebook(frame)
 	return plotter
 
+class TwoDimensionalPlotSelection(wx.Frame): 
+	def __init__(self, parent, title, data): 
+		super(TwoDimensionalPlotSelection, self).__init__(parent, title = title,size = (300,200))
+		self.x = None
+		self.y = None
+		self.parent = parent
+		self.data = data
+			
+		panel = wx.Panel(self) 
+		box = wx.BoxSizer(wx.VERTICAL)
+		x_text = wx.StaticText(panel,label = "X",style = wx.ALIGN_CENTRE) 
+			
+		box.Add(x_text,0,wx.EXPAND|wx.ALL,5) 
+		languages = list(data.columns)
+		self.x_selector = wx.ComboBox(panel,choices = languages) 
+		box.Add(self.x_selector,1,wx.EXPAND|wx.ALL,5)
+
+		y_text = wx.StaticText(panel,label = "Y",style = wx.ALIGN_CENTRE) 			
+		box.Add(y_text,0,wx.EXPAND|wx.ALL,5) 
+		self.y_selector = wx.ComboBox(panel,choices = languages) 
+		box.Add(self.y_selector,1,wx.EXPAND|wx.ALL,5) 
+
+		self.button = wx.Button(panel,label="Confirm",style = wx.ALIGN_CENTRE)
+		box.Add(self.button,0,wx.EXPAND|wx.ALL,5) 
+			
+		box.AddStretchSpacer() 
+		self.x_selector.Bind(wx.EVT_COMBOBOX, self.OnXSelect) 
+		self.y_selector.Bind(wx.EVT_COMBOBOX, self.OnYSelect)
+		self.button.Bind(wx.EVT_BUTTON, self.OnButtonPress)
+			
+		panel.SetSizer(box) 
+		self.Centre() 
+		self.Show() 
+			
+	def OnXSelect(self, event): 
+		self.x = self.x_selector.GetValue()
+		
+	def OnYSelect(self,event): 
+		self.y = self.y_selector.GetValue()
+
+	def OnButtonPress(self, event):
+		self.plotter_frame = wx.Frame(self.parent, -1, 'Plotter')
+		self.plotter_frame.SetSize((800, 600))
+		self.plotter = create_plot_notebook(self.plotter_frame)
+
+		axes1 = self.plotter.add('figure 1').gca()
+		axes1.plot(self.x, self.y , data=self.data)
+		self.plotter_frame.Show()
+		self.plotter_frame.Raise()
+
 # def demo():
 #     app = wx.App()
 #     frame = wx.Frame(None, -1, 'Plotter')

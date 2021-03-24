@@ -1,8 +1,10 @@
 import wx
 import wx.adv as adv
 import pandas as pd
+import numpy as np
 
 from functools import partial
+import time
 
 import functions.functions as fn
 import widgets.widgets as wd
@@ -20,6 +22,7 @@ class DataExplorerApp(wx.App):
 		self.filter_dialog = None
 
 		self.data = None
+		self.plotter = None
 
 		# Frames.
 		self.csv_frame = wd.TabularDisplayFrame(None, title=self.default_title)
@@ -127,16 +130,18 @@ class DataExplorerApp(wx.App):
 		# 	if not status or format in available_formats:
 		# 		menu.Enable(status)
 
-	def create_curve(self, format):
-		headings, rows, types = self.csv_frame.display_panel.GetValue(types=[type])
-		frame = wx.Frame(None, -1, 'Plotter')
-		plotter = wd.create_plot_notebook(frame)
-		axes1 = plotter.add('figure 1').gca()
-		axes1.plot([1, 2, 3], [2, 1, 4])
-		axes2 = plotter.add('figure 2').gca()
-		axes2.plot([1, 2, 3, 4, 5], [2, 1, 4, 2, 3])
-		frame.Show()
-		# app.MainLoop()
+	def create_curve(self, event=None):
+		if self.plotter is None:
+			self.plotter_frame = wx.Frame(self.csv_frame, -1, 'Plotter')
+			self.plotter_frame.SetSize((800, 600))
+			self.plotter = wd.create_plot_notebook(self.plotter_frame)
+
+		selector = wd.TwoDimensionalPlotSelection(self.csv_frame, "Curve Selection Menu", self.data)
+		selector.Show()
+		selector.Raise()
+
+	def create_heatmap(self):
+		pass
 
 	def create_plot(self, format, evt=None, type='scalar'):
 		"""
@@ -164,7 +169,7 @@ class DataExplorerApp(wx.App):
 		self.filter_menu_item.Enable(True)
 		self.close_menu_item.Enable(True)
 
-		self.data = pd.DataFrame(values[1:], columns=values[0])
+		self.data = pd.DataFrame(values[1:], columns=values[0], dtype='float64')
 
 	def OnMenuFileClose(self, evt=None):
 		self.csv_frame.display_panel.SetValue([], [])
