@@ -6,7 +6,6 @@ import wx
 import numpy as np
 
 import wx.lib.agw.aui as aui
-import wx.lib.mixins.inspection as wit
 
 import matplotlib as mpl
 from matplotlib.backends.backend_wxagg import (
@@ -266,43 +265,58 @@ def create_plot_notebook(frame):
 class TwoDimensionalPlotSelection(wx.Frame): 
 	def __init__(self, parent, title, data): 
 		super(TwoDimensionalPlotSelection, self).__init__(parent, title = title)
-		self.x = None
-		self.y = None
-		self.parent = parent
+
+		# Save the data that was passed
 		self.data = data
-			
-		panel = wx.Panel(self) 
-
-		main_box = wx.BoxSizer(wx.HORIZONTAL)
-		x_box = wx.BoxSizer(wx.VERTICAL)
-
-		x_text = wx.StaticText(panel,label = "X",style = wx.ALIGN_CENTRE) 	
-		x_box.Add(x_text,0,wx.EXPAND|wx.ALL,4)
-
+		# Make a list of the columns in the data
 		columns = list(data.columns)
 
+		# Set x and y data to none for the moment
+		self.x = None
+		self.y = None
+
+		# Create the panel for the plot selector interface
+		panel = wx.Panel(self) 
+
+		# Create a horizontal box sizer, which will contain the x selection interface, the y selection interface and the confirmation button
+		main_box = wx.BoxSizer(wx.HORIZONTAL)
+
+		# Create box for x selection interface
+		x_box = wx.BoxSizer(wx.VERTICAL)
+
+		# Create 'X' text label and place in box
+		x_text = wx.StaticText(panel,label = "X",style = wx.ALIGN_CENTRE) 	
+		x_box.Add(x_text,0,wx.EXPAND|wx.ALL,5)
+
+		# Add ListBox to select 
 		self.x_selector = wx.ListBox(panel,choices = columns, style=wx.CB_SIMPLE) 
-		x_box.Add(self.x_selector,1,wx.EXPAND|wx.ALL,5)
-		main_box.Add(x_box, 3,wx.EXPAND|wx.ALL,5)
+		x_box.Add(self.x_selector,0,wx.EXPAND|wx.ALL,5)
+
+		# Add whole x selector menu into the main box
+		main_box.Add(x_box, 0,wx.EXPAND|wx.ALL,5)
 		
+		# Create box for y selection interface
 		y_box= wx.BoxSizer(wx.VERTICAL)
 
+		# Add ListBox to select
 		y_text = wx.StaticText(panel,label = "Y",style = wx.ALIGN_CENTRE) 			
-		y_box.Add(y_text,0,wx.EXPAND|wx.ALL,5) 
+		y_box.Add(y_text, 0 ,wx.EXPAND|wx.ALL,5) 
 
-		self.y_selector = wx.ListBox(panel,choices = columns) 
-		y_box.Add(self.y_selector,1,wx.EXPAND|wx.ALL,5) 
-		main_box.Add(y_box, 3,wx.EXPAND|wx.ALL,5)
+		self.y_selector = wx.ListBox(panel,choices = columns, style=wx.CB_SIMPLE) 
+		y_box.Add(self.y_selector,0,wx.EXPAND|wx.ALL,5) 
+		main_box.Add(y_box, 0, wx.EXPAND|wx.ALL,5)
 
 		self.button = wx.Button(panel,label="Confirm",style = wx.BU_EXACTFIT)
-		main_box.Add(self.button,0,wx.SHAPED|wx.ALIGN_CENTER,5) 
-			
-		#box.AddStretchSpacer() 
+		main_box.Add(self.button, 0, wx.SHAPED|wx.ALIGN_CENTER, 5) 
+
 		self.x_selector.Bind(wx.EVT_LISTBOX, self.OnXSelect) 
 		self.y_selector.Bind(wx.EVT_LISTBOX, self.OnYSelect)
 		self.button.Bind(wx.EVT_BUTTON, self.OnButtonPress)
 			
-		panel.SetSizer(main_box) 
+		# Set size of panel to fit the whole dialog, center it on the frame and then show the window
+
+		panel.SetSizer(main_box)
+		main_box.SetSizeHints(self)
 		self.Centre() 
 		self.Show() 
 			
@@ -323,6 +337,77 @@ class TwoDimensionalPlotSelection(wx.Frame):
 		axes1.plot(self.x, self.y , data=self.data)
 		self.plotter_frame.Show()
 		self.plotter_frame.Raise()
+
+		self.Close()
+
+class ThreeDimensionalPlotSelection(wx.Frame): 
+	def __init__(self, parent, title, data): 
+		super(TwoDimensionalPlotSelection, self).__init__(parent, title = title)
+
+		# Save the parent window and the data that was passed
+		self.parent = parent
+		self.data = data
+		# Make a list of the columns in the data
+		columns = list(data.columns)
+
+		# Set x and y data to none for the moment
+		self.x = None
+		self.y = None
+
+		# Create the panel for the plot selector interface
+		panel = wx.Panel(self) 
+
+		# Create a horizontal box sizer, which will contain the x selection interface, the y selection interface and the confirmation button
+		main_box = wx.BoxSizer(wx.HORIZONTAL)
+
+		# Create box for x selection interface
+		x_box = wx.BoxSizer(wx.VERTICAL)
+
+		# Create 'X' text label and place in box
+		x_text = wx.StaticText(panel,label = "X",style = wx.ALIGN_CENTRE) 	
+		x_box.Add(x_text,0,wx.EXPAND|wx.ALL,5)
+
+		# Add ListBox to select 
+		self.x_selector = wx.ListBox(panel,choices = columns, style=wx.CB_SIMPLE) 
+		x_box.Add(self.x_selector,0,wx.EXPAND|wx.ALL,5)
+
+		# Add whole x selector menu into the main box
+		main_box.Add(x_box, 0,wx.EXPAND|wx.ALL,5)
+		
+		# Create box for y selection interface
+		y_box= wx.BoxSizer(wx.VERTICAL)
+
+		# Add ListBox to select
+		y_text = wx.StaticText(panel,label = "Y",style = wx.ALIGN_CENTRE) 			
+		y_box.Add(y_text, 0 ,wx.EXPAND|wx.ALL,5) 
+
+		self.y_selector = wx.ListBox(panel,choices = columns, style=wx.CB_SIMPLE) 
+		y_box.Add(self.y_selector,0,wx.EXPAND|wx.ALL,5) 
+		main_box.Add(y_box, 0, wx.EXPAND|wx.ALL,5)
+
+		z_box= wx.BoxSizer(wx.VERTICAL)
+
+		# Add ListBox to select
+		z_text = wx.StaticText(panel,label = "Z",style = wx.ALIGN_CENTRE) 			
+		z_box.Add(z_text, 0 ,wx.EXPAND|wx.ALL,5) 
+
+		self.z_selector = wx.ListBox(panel,choices = columns, style=wx.CB_SIMPLE) 
+		z_box.Add(self.z_selector,0,wx.EXPAND|wx.ALL,5) 
+		main_box.Add(z_box, 0, wx.EXPAND|wx.ALL,5)
+
+		self.button = wx.Button(panel,label="Confirm",style = wx.BU_EXACTFIT)
+		main_box.Add(self.button, 1, wx.SHAPED|wx.ALIGN_CENTER, 5) 
+
+		self.x_selector.Bind(wx.EVT_LISTBOX, self.OnXSelect) 
+		self.y_selector.Bind(wx.EVT_LISTBOX, self.OnYSelect)
+		self.button.Bind(wx.EVT_BUTTON, self.OnButtonPress)
+			
+		# Set size of panel to fit the whole dialog, center it on the frame and then show the window
+
+		panel.SetSizer(main_box)
+		main_box.SetSizeHints(self)
+		self.Centre() 
+		self.Show() 
 
 # def demo():
 #     app = wx.App()
