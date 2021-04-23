@@ -265,43 +265,54 @@ def create_plot_notebook(frame):
 
 class TwoDimensionalPlotSelection(wx.Frame): 
 	def __init__(self, parent, title, data): 
-		super(TwoDimensionalPlotSelection, self).__init__(parent, title = title,size = (300,200))
+		super(TwoDimensionalPlotSelection, self).__init__(parent, title = title)
 		self.x = None
 		self.y = None
 		self.parent = parent
 		self.data = data
 			
 		panel = wx.Panel(self) 
-		box = wx.BoxSizer(wx.VERTICAL)
-		x_text = wx.StaticText(panel,label = "X",style = wx.ALIGN_CENTRE) 
-			
-		box.Add(x_text,0,wx.EXPAND|wx.ALL,5) 
-		languages = list(data.columns)
-		self.x_selector = wx.ComboBox(panel,choices = languages) 
-		box.Add(self.x_selector,1,wx.EXPAND|wx.ALL,5)
+
+		main_box = wx.BoxSizer(wx.HORIZONTAL)
+		x_box = wx.BoxSizer(wx.VERTICAL)
+
+		x_text = wx.StaticText(panel,label = "X",style = wx.ALIGN_CENTRE) 	
+		x_box.Add(x_text,0,wx.EXPAND|wx.ALL,4)
+
+		columns = list(data.columns)
+
+		self.x_selector = wx.ListBox(panel,choices = columns, style=wx.CB_SIMPLE) 
+		x_box.Add(self.x_selector,1,wx.EXPAND|wx.ALL,5)
+		main_box.Add(x_box, 3,wx.EXPAND|wx.ALL,5)
+		
+		y_box= wx.BoxSizer(wx.VERTICAL)
 
 		y_text = wx.StaticText(panel,label = "Y",style = wx.ALIGN_CENTRE) 			
-		box.Add(y_text,0,wx.EXPAND|wx.ALL,5) 
-		self.y_selector = wx.ComboBox(panel,choices = languages) 
-		box.Add(self.y_selector,1,wx.EXPAND|wx.ALL,5) 
+		y_box.Add(y_text,0,wx.EXPAND|wx.ALL,5) 
 
-		self.button = wx.Button(panel,label="Confirm",style = wx.ALIGN_CENTRE)
-		box.Add(self.button,0,wx.EXPAND|wx.ALL,5) 
+		self.y_selector = wx.ListBox(panel,choices = columns) 
+		y_box.Add(self.y_selector,1,wx.EXPAND|wx.ALL,5) 
+		main_box.Add(y_box, 3,wx.EXPAND|wx.ALL,5)
+
+		self.button = wx.Button(panel,label="Confirm",style = wx.BU_EXACTFIT)
+		main_box.Add(self.button,0,wx.SHAPED|wx.ALIGN_CENTER,5) 
 			
-		box.AddStretchSpacer() 
-		self.x_selector.Bind(wx.EVT_COMBOBOX, self.OnXSelect) 
-		self.y_selector.Bind(wx.EVT_COMBOBOX, self.OnYSelect)
+		#box.AddStretchSpacer() 
+		self.x_selector.Bind(wx.EVT_LISTBOX, self.OnXSelect) 
+		self.y_selector.Bind(wx.EVT_LISTBOX, self.OnYSelect)
 		self.button.Bind(wx.EVT_BUTTON, self.OnButtonPress)
 			
-		panel.SetSizer(box) 
+		panel.SetSizer(main_box) 
 		self.Centre() 
 		self.Show() 
 			
 	def OnXSelect(self, event): 
-		self.x = self.x_selector.GetValue()
+		x_index = self.x_selector.GetSelection()
+		self.x = self.x_selector.GetString(x_index)
 		
-	def OnYSelect(self,event): 
-		self.y = self.y_selector.GetValue()
+	def OnYSelect(self,event):
+		y_index = self.y_selector.GetSelection()
+		self.y = self.y_selector.GetString(y_index)
 
 	def OnButtonPress(self, event):
 		self.plotter_frame = wx.Frame(self.parent, -1, 'Plotter')

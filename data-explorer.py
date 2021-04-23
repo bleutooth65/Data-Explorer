@@ -170,6 +170,7 @@ class DataExplorerApp(wx.App):
 		self.close_menu_item.Enable(True)
 
 		self.data = pd.DataFrame(values[1:], columns=values[0], dtype='float64')
+		self.filename = filename
 
 	def OnMenuFileClose(self, evt=None):
 		self.csv_frame.display_panel.SetValue([], [])
@@ -248,7 +249,7 @@ class DataExplorerApp(wx.App):
 	def OnMenuHelpAbout(self, evt=None):
 		info = adv.AboutDialogInfo()
 		info.SetName('Data Explorer')
-		info.SetDescription('''An application for displaying data in tabular and graphical form.\n'
+		info.SetDescription('''An application for displaying data in tabular and graphical form.\n
 		Written by Stephen Harrigan using code from Dmitri Iouchtchenko.
 		'''
 		)
