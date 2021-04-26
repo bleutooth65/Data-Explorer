@@ -213,6 +213,25 @@ class DataTable(wx.grid.GridTableBase):
             attr.SetBackgroundColour('#CCE6FF')
         return attr
 
+class Table_Viewer(wx.ListCtrl):
+	def __init__(self, parent):
+		wx.ListCtrl.__init__(self, parent,id=wx.ID_ANY, pos=wx.DefaultPosition,
+				size=wx.DefaultSize, style=wx.LC_REPORT|wx.LC_VRULES|wx.LC_VIRTUAL)
+		self.df=pd.DataFrame()
+#-----------------------------         
+	def set_value(self,df):
+		self.ClearAll()
+		self.df=df.copy()
+		for i, col in enumerate(df):
+			self.InsertColumn(i,col)
+			self.SetColumnWidth(i, wx.LIST_AUTOSIZE_USEHEADER)
+		self.SetItemCount(len(self.df))
+		self.Update()
+#----------------------------  
+	def OnGetItemText(self,item, col):
+			value = self.df.iloc[item, col]
+			return str(value)
+
 # class TabularDisplayPanel(wx.Panel):
 # 	"""
 # 	A panel to display arbitrary tabular data.
@@ -279,11 +298,9 @@ class TabularDisplayFrame(wx.Frame):
 		self.sizer.SetSizeHints(self)
 
 	def add_table(self, data):
-		table = DataTable(data)
-		grid = wx.grid.Grid(self, -1)
-		grid.SetTable(table, takeOwnership=True)
-		grid.AutoSizeColumns()
-		return grid
+		table = Table_Viewer(self)
+		table.set_value(data)
+		return table
 
 	def remove_table(self):
 		self.sizer.Clear(delete_windows=True)

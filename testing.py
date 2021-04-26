@@ -46,27 +46,18 @@
 #     app.MainLoop()
 
 
+import numpy as np
 import pandas as pd
 
 import wx
-import wx.grid as grid
+import wx.grid
 
-EVEN_ROW_COLOUR = '#CCE6FF'
+# EVEN_ROW_COLOUR = '#CCE6FF'
+# GRID_LINE_COLOUR = '#ccc'
 
-data = {
-   "downloadHistory": [
-        {
-            "titles": ["example123456789", "exampletitle2"],
-            "author": ["author123456", "author2"],
-            "urls": ["https://example.com/", "https://example.com/12345"]
-        }
-    ],
-}
-
-#declare DataTable to hold the wx.grid data to be displayed
 class DataTable(wx.grid.GridTableBase):
     def __init__(self, data=None):
-        grid.GridTableBase.__init__(self)
+        wx.grid.GridTableBase.__init__(self)
         self.headerRows = 1
         if data is None:
             data = pd.DataFrame()
@@ -95,12 +86,12 @@ class DataTable(wx.grid.GridTableBase):
         return str(self.data.columns[col - 1])
 
     def GetTypeName(self, row, col):
-        return grid.GRID_VALUE_STRING
+        return wx.grid.GRID_VALUE_STRING
 
     def GetAttr(self, row, col, prop):
-        attr = grid.GridCellAttr()
+        attr = wx.grid.GridCellAttr()
         if row % 2 == 1:
-            attr.SetBackgroundColour(EVEN_ROW_COLOUR)
+            attr.SetBackgroundColour('#CCE6FF')
         return attr
 
 
@@ -111,26 +102,29 @@ class MyFrame(wx.Frame):
 
     def __init__(self):
         """Constructor"""
-        wx.Frame.__init__(self, None, wx.ID_ANY, "DOWNLOAD HISTORY")
+        wx.Frame.__init__(self, None, wx.ID_ANY, "Pandas")
         self._init_gui()
         self.Layout()
         self.Show()
 
     def _init_gui(self):
-        # assign the DataFrame to df
-        df = pd.DataFrame(data["downloadHistory"][0])
+        df = pd.DataFrame(np.random.random((20, 5)))
         table = DataTable(df)
 
-        #declare the grid and assign data
-        grid = grid.Grid(self, -1)
+        grid = wx.grid.Grid(self, -1)
         grid.SetTable(table, takeOwnership=True)
         grid.AutoSizeColumns()
 
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
-        
-        sizer.Add(grid, 0, wx.EXPAND)
-        
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(grid, 1, wx.EXPAND)
+        self.SetSizer(sizer)
         sizer.SetSizeHints(self)
+
+        self.Bind(wx.EVT_CLOSE, self.exit)
+
+    def exit(self, event):
+        self.Destroy()
+
 
 if __name__ == "__main__":
     app = wx.App()
