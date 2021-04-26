@@ -3,7 +3,7 @@ File which contains all of the custom widgets created for the Data Explorer
 '''
 
 import wx
-import wx.grid as grid
+import wx.grid
 import numpy as np
 import pandas as pd
 
@@ -176,7 +176,7 @@ class VirtualListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin):
 
 class DataTable(wx.grid.GridTableBase):
     def __init__(self, data=None):
-        grid.GridTableBase.__init__(self)
+        wx.grid.GridTableBase.__init__(self)
         self.headerRows = 1
         if data is None:
             data = pd.DataFrame()
@@ -205,131 +205,121 @@ class DataTable(wx.grid.GridTableBase):
         return str(self.data.columns[col - 1])
 
     def GetTypeName(self, row, col):
-        return grid.GRID_VALUE_STRING
+        return wx.grid.GRID_VALUE_STRING
 
     def GetAttr(self, row, col, prop):
-        attr = grid.GridCellAttr()
+        attr = wx.grid.GridCellAttr()
         if row % 2 == 1:
             attr.SetBackgroundColour('#CCE6FF')
         return attr
 
+# class TabularDisplayPanel(wx.Panel):
+# 	"""
+# 	A panel to display arbitrary tabular data.
+# 	"""
 
-class MyFrame(wx.Frame):
-    """
-    Frame that holds all other widgets
-    """
+# 	def __init__(self, parent, *args, **kwargs):
+# 		wx.Panel.__init__(self, parent, *args, **kwargs)
 
-    def __init__(self, data):
-        """Constructor"""
-        wx.Frame.__init__(self, None, wx.ID_ANY, "DOWNLOAD HISTORY")
-        self._init_gui()
-        self.Layout()
-        self.Show()
+# 		# Panel.
+# 		# panel_box = wx.BoxSizer(wx.VERTICAL)
 
-    def _init_gui(self):
-        # assign the DataFrame to df
-        df = pd.DataFrame(data["downloadHistory"][0])
-        table = DataTable(df)
+# 		## Table.
+# 		self.table = DataTable()
+# 		# panel_box.Add(self.table, proportion=1, flag=wx.EXPAND)
 
-        #declare the grid and assign data
-        grid = wx.grid.Grid(self, -1)
-        grid.SetTable(table, takeOwnership=True)
-        grid.AutoSizeColumns()
+# 		# self.SetSizer(panel_box)
 
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
-        
-        sizer.Add(grid, 0, wx.EXPAND)
-        
-        sizer.SetSizeHints(self)
+# 	def __len__(self):
+# 		return self.table.ItemCount
 
-class GridDisplay():
-	pass
+# 	# TODO: has headers does not function as intended, never will reach code to give header names
+# 	def from_csv_data(self, has_header, values):
+# 		"""
+# 		Import the given CSV data into the table.
 
-class TabularDisplayPanel(wx.Panel):
-	"""
-	A panel to display arbitrary tabular data.
-	"""
+# 		If has_header is True, the first row is treated specially.
+# 		"""
 
-	def __init__(self, parent, *args, **kwargs):
-		wx.Panel.__init__(self, parent, *args, **kwargs)
+# 		if has_header:
+# 			headers, rows = values[0], np.array(values[1:])
+# 		else:
+# 			headers, rows = [''] * len(values[0]), np.array(values)
 
-		# Panel.
-		panel_box = wx.BoxSizer(wx.VERTICAL)
+# 		# Ensure that all columns have a header.
+# 		for i, header in enumerate(headers):
+# 			if not header:
+# 				headers[i] = f'Column {i + 1}'
 
-		## Table.
-		self.table = VirtualListCtrl(self)
-		panel_box.Add(self.table, proportion=1, flag=wx.EXPAND)
+# 		self.SetValue(headers, rows)
 
-		self.SetSizer(panel_box)
+# 	def GetValue(self, *args, **kwargs):
+# 		return self.table.GetValue(*args, **kwargs)
 
-	def __len__(self):
-		return self.table.ItemCount
-
-	# TODO: has headers does not function as intended, never will reach code to give header names
-	def from_csv_data(self, has_header, values):
-		"""
-		Import the given CSV data into the table.
-
-		If has_header is True, the first row is treated specially.
-		"""
-
-		if has_header:
-			headers, rows = values[0], np.array(values[1:])
-		else:
-			headers, rows = [''] * len(values[0]), np.array(values)
-
-		# Ensure that all columns have a header.
-		for i, header in enumerate(headers):
-			if not header:
-				headers[i] = f'Column {i + 1}'
-
-		self.SetValue(headers, rows)
-
-	def GetValue(self, *args, **kwargs):
-		return self.table.GetValue(*args, **kwargs)
-
-	def SetValue(self, headings, values):
-		self.table.SetValue(headings, values)
+# 	def SetValue(self, headings, values):
+# 		self.table.SetValue(headings, values)
 
 
 class TabularDisplayFrame(wx.Frame):
+	"""
+	Frame that holds all other widgets
+	"""
+
 	def __init__(self, parent, *args, **kwargs):
-		wx.Frame.__init__(self, parent, *args, **kwargs)
+		"""Constructor"""
+		wx.Frame.__init__(self, None, *args, **kwargs)
+		# self._init_gui()
+		self.Layout()
+		self.Show()
 
-		# Frame.
-		frame_box = wx.BoxSizer(wx.VERTICAL)
+	def _init_gui(self, data):
+		self.sizer = wx.BoxSizer(wx.VERTICAL)
+		self.sizer.Add(self.add_table(data), 1, wx.EXPAND)
+		self.SetSizer(self.sizer)
+		self.sizer.SetSizeHints(self)
 
-		## Display panel.
-		self.display_panel = TabularDisplayPanel(self)
-		frame_box.Add(self.display_panel, proportion=1, flag=wx.EXPAND)
+	def add_table(self, data):
+		table = DataTable(data)
+		grid = wx.grid.Grid(self, -1)
+		grid.SetTable(table, takeOwnership=True)
+		grid.AutoSizeColumns()
+		return grid
 
-		self.SetSizer(frame_box)
+	def remove_table(self):
+		self.sizer.Clear(delete_windows=True)
+		self.sizer.SetSizeHints(self)
+
+	def exit(self, event):
+		self.Destroy()
+
+	def kill(self):
+		pass
 
 class Plot(wx.Panel):
-    def __init__(self, parent, id=-1, dpi=None, **kwargs):
-        wx.Panel.__init__(self, parent, id=id, **kwargs)
-        self.figure = mpl.figure.Figure(dpi=dpi, figsize=(2, 2))
-        self.canvas = FigureCanvas(self, -1, self.figure)
-        self.toolbar = NavigationToolbar(self.canvas)
-        self.toolbar.Realize()
+	def __init__(self, parent, id=-1, dpi=None, **kwargs):
+		wx.Panel.__init__(self, parent, id=id, **kwargs)
+		self.figure = mpl.figure.Figure(dpi=dpi, figsize=(2, 2))
+		self.canvas = FigureCanvas(self, -1, self.figure)
+		self.toolbar = NavigationToolbar(self.canvas)
+		self.toolbar.Realize()
 
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self.canvas, 1, wx.EXPAND)
-        sizer.Add(self.toolbar, 0, wx.LEFT | wx.EXPAND)
-        self.SetSizer(sizer)
+		sizer = wx.BoxSizer(wx.VERTICAL)
+		sizer.Add(self.canvas, 1, wx.EXPAND)
+		sizer.Add(self.toolbar, 0, wx.LEFT | wx.EXPAND)
+		self.SetSizer(sizer)
 
 class PlotNotebook(wx.Panel):
-    def __init__(self, parent, id=-1):
-        wx.Panel.__init__(self, parent, id=id)
-        self.nb = aui.AuiNotebook(self)
-        sizer = wx.BoxSizer()
-        sizer.Add(self.nb, 1, wx.EXPAND)
-        self.SetSizer(sizer)
+	def __init__(self, parent, id=-1):
+		wx.Panel.__init__(self, parent, id=id)
+		self.nb = aui.AuiNotebook(self)
+		sizer = wx.BoxSizer()
+		sizer.Add(self.nb, 1, wx.EXPAND)
+		self.SetSizer(sizer)
 
-    def add(self, name="plot"):
-        page = Plot(self.nb)
-        self.nb.AddPage(page, name)
-        return page.figure
+	def add(self, name="plot"):
+		page = Plot(self.nb)
+		self.nb.AddPage(page, name)
+		return page.figure
 
 def create_plot_notebook(frame):
 	plotter = PlotNotebook(frame)

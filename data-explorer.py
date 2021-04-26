@@ -160,17 +160,20 @@ class DataExplorerApp(wx.App):
 		if not bool(has_header or values or filename):
 			return
 		else:
-			self.OnMenuFileClose()
+			if hasattr(self.csv_frame, "sizer"):
+				self.csv_frame.remove_table()
+			#self.OnMenuFileClose()
 
-		self.csv_frame.display_panel.from_csv_data(has_header, values)
-		self.csv_frame.Title = f'{filename} - {self.default_title}'
+		# self.csv_frame.display_panel.from_csv_data(has_header, values)
+		# self.csv_frame.Title = f'{filename} - {self.default_title}'
 
-		self.update_plot_menus(len(self.csv_frame.display_panel) > 0)
+		# self.update_plot_menus(len(self.csv_frame.display_panel) > 0)
 
-		self.filter_menu_item.Enable(True)
-		self.close_menu_item.Enable(True)
+		# self.filter_menu_item.Enable(True)
+		# self.close_menu_item.Enable(True)
 
 		self.data = pd.DataFrame(values[1:], columns=values[0], dtype='float64')
+		self.csv_frame._init_gui(self.data)
 		self.filename = filename
 
 	def OnMenuFileClose(self, evt=None):
