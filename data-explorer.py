@@ -1,5 +1,6 @@
 import wx
 import wx.adv as adv
+import wx.grid as grid
 import pandas as pd
 import numpy as np
 

@@ -3,7 +3,9 @@ File which contains all of the custom widgets created for the Data Explorer
 '''
 
 import wx
+import wx.grid as grid
 import numpy as np
+import pandas as pd
 
 import wx.lib.agw.aui as aui
 
@@ -172,6 +174,77 @@ class VirtualListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin):
 
 		return self.display_data[item,col]
 
+class DataTable(wx.grid.GridTableBase):
+    def __init__(self, data=None):
+        grid.GridTableBase.__init__(self)
+        self.headerRows = 1
+        if data is None:
+            data = pd.DataFrame()
+        self.data = data
+
+    def GetNumberRows(self):
+        return len(self.data)
+
+    def GetNumberCols(self):
+        return len(self.data.columns) + 1
+
+    def GetValue(self, row, col):
+        if col == 0:
+            return self.data.index[row]
+        return self.data.iloc[row, col - 1]
+
+    def SetValue(self, row, col, value):
+        self.data.iloc[row, col - 1] = value
+
+    def GetColLabelValue(self, col):
+        if col == 0:
+            if self.data.index.name is None:
+                return 'Index'
+            else:
+                return self.data.index.name
+        return str(self.data.columns[col - 1])
+
+    def GetTypeName(self, row, col):
+        return grid.GRID_VALUE_STRING
+
+    def GetAttr(self, row, col, prop):
+        attr = grid.GridCellAttr()
+        if row % 2 == 1:
+            attr.SetBackgroundColour('#CCE6FF')
+        return attr
+
+
+class MyFrame(wx.Frame):
+    """
+    Frame that holds all other widgets
+    """
+
+    def __init__(self, data):
+        """Constructor"""
+        wx.Frame.__init__(self, None, wx.ID_ANY, "DOWNLOAD HISTORY")
+        self._init_gui()
+        self.Layout()
+        self.Show()
+
+    def _init_gui(self):
+        # assign the DataFrame to df
+        df = pd.DataFrame(data["downloadHistory"][0])
+        table = DataTable(df)
+
+        #declare the grid and assign data
+        grid = wx.grid.Grid(self, -1)
+        grid.SetTable(table, takeOwnership=True)
+        grid.AutoSizeColumns()
+
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        sizer.Add(grid, 0, wx.EXPAND)
+        
+        sizer.SetSizeHints(self)
+
+class GridDisplay():
+	pass
+
 class TabularDisplayPanel(wx.Panel):
 	"""
 	A panel to display arbitrary tabular data.
@@ -268,6 +341,7 @@ class TwoDimensionalPlotSelection(wx.Frame):
 
 		# Save the data that was passed
 		self.data = data
+		self.parent = parent
 		# Make a list of the columns in the data
 		columns = list(data.columns)
 
