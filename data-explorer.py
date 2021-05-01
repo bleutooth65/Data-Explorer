@@ -1,13 +1,12 @@
 import wx
 import wx.adv as adv
-import wx.grid as grid
 import pandas as pd
 import numpy as np
 
+from os.path import basename
 from functools import partial
 import time
 
-import functions.functions as fn
 import widgets.widgets as wd
 
 
@@ -152,29 +151,33 @@ class DataExplorerApp(wx.App):
 
 	def OnMenuFileOpen(self, evt=None):
 		try:
-			has_header, values, filename = fn.load_csv(self.csv_frame)
+			self.data, self.filename = self._load_csv()
 		except IOError as e:
 			wx.MessageDialog(self.csv_frame, str(e), 'Could not load data').Show()
 			return
 
-		if not bool(has_header or values or filename):
-			return
-		else:
-			self.OnMenuFileClose()
+		# if not bool(self.data or self.filename):
+		# 	return
+		# else:
+		if hasattr(self.csv_frame, "sizer"):
+			self.csv_frame.remove_table()
+		#self.OnMenuFileClose()
 
-		self.csv_frame.display_panel.from_csv_data(has_header, values)
-		self.csv_frame.Title = f'{filename} - {self.default_title}'
+		# self.csv_frame.display_panel.from_csv_data(has_header, values)
+		self.csv_frame.Title = f'{self.filename} - {self.default_title}'
 
-		self.update_plot_menus(len(self.csv_frame.display_panel) > 0)
+		# self.update_plot_menus(len(self.csv_frame.display_panel) > 0)
 
-		self.filter_menu_item.Enable(True)
+		# self.filter_menu_item.Enable(True)
 		self.close_menu_item.Enable(True)
 
-		self.data = pd.DataFrame(values[1:], columns=values[0], dtype='float64')
-		self.filename = filename
+		# self.data = pd.DataFrame(values[1:], columns=values[0], dtype='float64')
+		self.csv_frame._init_gui(self.data)
+		# self.filename = filename
 
 	def OnMenuFileClose(self, evt=None):
-		self.csv_frame.display_panel.SetValue([], [])
+		# self.csv_frame.display_panel.SetValue([], [])
+		self.csv_frame.remove_table()
 		self.csv_frame.Title = self.default_title
 
 		self.update_plot_menus(False)
@@ -247,6 +250,19 @@ class DataExplorerApp(wx.App):
 
 		# self.csv_frame.display_panel.SetValue(new_headings,new_rows)
 
+	@staticmethod
+	def _load_csv():
+
+		dlg = wx.FileDialog(parent=None, message='Load...', wildcard="CSV (*.csv)|*.csv",
+				style=wx.FD_OPEN)
+
+		if dlg.ShowModal() == wx.ID_OK:
+			path = dlg.GetPath()
+			filename = basename(path)
+			df = pd.read_csv(path, float_precision='round_trip')
+
+			return df, filename
+
 	def OnMenuHelpAbout(self, evt=None):
 		info = adv.AboutDialogInfo()
 		info.SetName('Data Explorer')
@@ -258,5 +274,7 @@ class DataExplorerApp(wx.App):
 		adv.AboutBox(info)
 
 if __name__ == "__main__":
+	#import wx.lib.inspection
 	app = DataExplorerApp()
+	#wx.lib.inspection.InspectionTool().Show()
 	app.MainLoop()
