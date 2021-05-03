@@ -1,11 +1,8 @@
 import wx
-import wx.adv as adv
+from wx.adv import AboutBox, AboutDialogInfo
 import pandas as pd
-import numpy as np
 
 from os.path import basename
-from functools import partial
-import time
 
 import widgets.widgets as wd
 
@@ -22,7 +19,8 @@ class DataExplorerApp(wx.App):
 		self.filter_dialog = None
 
 		self.data = None
-		self.plotter = None
+		# self.plotter = None
+		self.plotter_frame = None
 
 		# Frames.
 		self.csv_frame = wd.TabularDisplayFrame(None, title=self.default_title)
@@ -36,6 +34,13 @@ class DataExplorerApp(wx.App):
 
 		item = menu.Append(wx.ID_OPEN, 'Open...')
 		self.Bind(wx.EVT_MENU, self.OnMenuFileOpen, item)
+
+		self.rename_menu_item = menu.Append(wx.ID_ANY, 'Rename column...')
+		self.Bind(wx.EVT_MENU, wd.NotImplemented, self.rename_menu_item)
+
+		self.save_menu_item = menu.Append(wx.ID_ANY, 'Save as...')
+		self.save_menu_item.Enable(False)
+		self.Bind(wx.EVT_MENU, wd.NotImplemented, self.save_menu_item)
 
 		self.close_menu_item = menu.Append(wx.ID_CLOSE, 'Close')
 		self.close_menu_item.Enable(False)
@@ -131,10 +136,10 @@ class DataExplorerApp(wx.App):
 		# 		menu.Enable(status)
 
 	def create_curve(self, event=None):
-		if self.plotter is None:
-			self.plotter_frame = wx.Frame(self.csv_frame, -1, 'Plotter')
-			self.plotter_frame.SetSize((800, 600))
-			self.plotter = wd.create_plot_notebook(self.plotter_frame)
+		# if self.plotter_frame is None:
+		# 	self.plotter_frame = wx.Frame(self.csv_frame, -1, 'Plotter')
+		# 	self.plotter_frame.SetSize((800, 600))
+		# 	self.plotter = wd.create_plot_notebook(self.plotter_frame)
 
 		selector = wd.TwoDimensionalPlotSelection(self.csv_frame, "Curve Selection Menu", self.data)
 		selector.Show()
@@ -170,6 +175,8 @@ class DataExplorerApp(wx.App):
 
 		# self.filter_menu_item.Enable(True)
 		self.close_menu_item.Enable(True)
+		self.save_menu_item.Enable(True)
+		self.rename_menu_item.Enable(True)
 
 		# self.data = pd.DataFrame(values[1:], columns=values[0], dtype='float64')
 		self.csv_frame._init_gui(self.data)
@@ -264,14 +271,14 @@ class DataExplorerApp(wx.App):
 			return df, filename
 
 	def OnMenuHelpAbout(self, evt=None):
-		info = adv.AboutDialogInfo()
+		info = AboutDialogInfo()
 		info.SetName('Data Explorer')
 		info.SetDescription('''An application for displaying data in tabular and graphical form.\n
 		Written by Stephen Harrigan using code from Dmitri Iouchtchenko.
 		'''
 		)
 
-		adv.AboutBox(info)
+		AboutBox(info)
 
 if __name__ == "__main__":
 	#import wx.lib.inspection
