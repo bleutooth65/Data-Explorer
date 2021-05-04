@@ -3,8 +3,8 @@ File which contains all of the custom widgets created for the Data Explorer
 '''
 
 import wx
-import wx.grid
 import pandas as pd
+import seaborn as sns
 
 import matplotlib as mpl
 from matplotlib.backends.backend_wxagg import (
@@ -30,7 +30,7 @@ class Table_Viewer(wx.ListCtrl):
 		self.EnableAlternateRowColours(enable=True)
 		self.SetItemCount(len(self.df))
 		self.Update()
-#----------------------------  
+#---------------------------- 
 	def OnGetItemText(self,item, col):
 			value = self.df.iloc[item, col]
 			return str(value)
@@ -166,14 +166,14 @@ class TwoDimensionalPlotSelection(wx.Frame):
 		self.y = self.y_selector.GetString(y_index)
 
 	def OnButtonPress(self, event):
-		self.plotter_frame = wx.Frame(self.parent, -1, 'Plotter')
+		self.plotter_frame = wx.Frame(self.parent, -1, self.parent.Title[:-len(' - Data Explorer')])
 		self.plotter_frame.SetSize((800, 600))
 		self.plotter = create_plot_notebook(self.plotter_frame)
 
-		axes1 = self.plotter.add(self.parent.Title[:-len(' - Data Explorer')]).gca()
-		axes1.plot(self.x, self.y, data=self.data)
-		axes1.set_xlabel(self.x, size=12)
-		axes1.set_ylabel(self.y, size=12)
+		axes = self.plotter.add(self.parent.Title[:-len(' - Data Explorer')]).gca()
+		axes.plot(self.x, self.y, data=self.data)
+		axes.set_xlabel(self.x, size=12)
+		axes.set_ylabel(self.y, size=12)
 
 		self.plotter_frame.Show()
 		self.plotter_frame.Raise()
@@ -182,7 +182,7 @@ class TwoDimensionalPlotSelection(wx.Frame):
 
 class ThreeDimensionalPlotSelection(wx.Frame): 
 	def __init__(self, parent, title, data): 
-		super(TwoDimensionalPlotSelection, self).__init__(parent, title = title)
+		super(ThreeDimensionalPlotSelection, self).__init__(parent, title = title)
 
 		# Save the parent window and the data that was passed
 		self.parent = parent
@@ -193,6 +193,7 @@ class ThreeDimensionalPlotSelection(wx.Frame):
 		# Set x and y data to none for the moment
 		self.x = None
 		self.y = None
+		self.z = None
 
 		# Create the panel for the plot selector interface
 		panel = wx.Panel(self) 
@@ -240,27 +241,42 @@ class ThreeDimensionalPlotSelection(wx.Frame):
 
 		self.x_selector.Bind(wx.EVT_LISTBOX, self.OnXSelect) 
 		self.y_selector.Bind(wx.EVT_LISTBOX, self.OnYSelect)
+		self.z_selector.Bind(wx.EVT_LISTBOX, self.OnZSelect)
 		self.button.Bind(wx.EVT_BUTTON, self.OnButtonPress)
-			
-		# Set size of panel to fit the whole dialog, center it on the frame and then show the window
+
+			# Set size of panel to fit the whole dialog, center it on the frame and then show the window
 
 		panel.SetSizer(main_box)
 		main_box.SetSizeHints(self)
 		self.Centre() 
 		self.Show() 
 
-def demo():
+	def OnXSelect(self, event): 
+		x_index = self.x_selector.GetSelection()
+		self.x = self.x_selector.GetString(x_index)
+		
+	def OnYSelect(self, event):
+		y_index = self.y_selector.GetSelection()
+		self.y = self.y_selector.GetString(y_index)
 
-	app = wx.App()
-	frame = wx.Frame(None, -1, 'Plotter')
-	plotter = PlotNotebook(frame)
-	for i in range(5):
-		axes1 = plotter.add('figure 1').gca()
-		axes1.plot([1, 2, 3], [2, 1, 4])
-	frame.Show()
-	# axes2 = plotter.add('figure 2').gca()
-	# axes2.plot([1, 2, 3, 4, 5], [2, 1, 4, 2, 3])
-	app.MainLoop()
+	def OnZSelect(self, event):
+		z_index = self.z_selector.GetSelection()
+		self.z = self.z_selector.GetString(z_index)
 
-if __name__ == "__main__":
-	demo()
+	def OnButtonPress(self, event):
+		self.plotter_frame = wx.Frame(self.parent, -1, self.parent.Title[:-len(' - Data Explorer')])
+		self.plotter_frame.SetSize((800, 800))
+		self.plotter = create_plot_notebook(self.plotter_frame)
+
+		pivotted_data = self.data.pivot(index=self.y, columns=self.x, values=self.z)
+
+		axes = self.plotter.add(self.parent.Title[:-len(' - Data Explorer')]).gca()
+		sns.heatmap(pivotted_data, ax=axes, cbar_kws={'label': self.z})
+		axes.invert_yaxis()
+		axes.set_xlabel(self.x, size=12)
+		axes.set_ylabel(self.y, size=12)
+
+		self.plotter_frame.Show()
+		self.plotter_frame.Raise()
+
+		self.Close()

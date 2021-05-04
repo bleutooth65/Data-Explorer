@@ -64,26 +64,14 @@ class DataExplorerApp(wx.App):
 		menu.Append(wx.ID_ANY, ' 2D:').Enable(False)
 
 		self.two_dimensional_menu = menu.Append(wx.ID_ANY, 'Curve...')
-		#self.Bind(wx.EVT_MENU, wd.NotImplemented, self.two_dimensional_menu)
 		self.Bind(wx.EVT_MENU, self.create_curve, self.two_dimensional_menu) 
-		#partial(self.create_plot, formats.two_dimensional),self.two_dimensional_menu)
 
 		menu.AppendSeparator()
 
 		menu.Append(wx.ID_ANY, ' 3D:').Enable(False)
 
-		self.colormapped_menu = menu.Append(wx.ID_ANY, 'Colormapped...')
-		self.Bind(wx.EVT_MENU, wd.NotImplemented, self.colormapped_menu) # self.Bind(wx.EVT_MENU, partial(self.create_plot, formats.colormapped), self.colormapped_menu)
-
-		self.surface_menu = menu.Append(wx.ID_ANY, 'Surface...')
-		self.Bind(wx.EVT_MENU, wd.NotImplemented,  self.surface_menu) # self.Bind(wx.EVT_MENU, partial(self.create_plot, formats.surface), self.surface_menu)
-
-		menu.AppendSeparator()
-
-		menu.Append(wx.ID_ANY, ' List:').Enable(False)
-
-		self.waveforms_menu = menu.Append(wx.ID_ANY, '&Waveforms...')
-		self.Bind(wx.EVT_MENU, wd.NotImplemented, self.waveforms_menu) # self.Bind(wx.EVT_MENU, partial(self.create_plot, formats.waveforms, type='list'), self.waveforms_menu)
+		self.colormapped_menu = menu.Append(wx.ID_ANY, 'Color Map...')
+		self.Bind(wx.EVT_MENU, self.create_heatmap, self.colormapped_menu)
 
 		## Math.
 		menu = wx.Menu()
@@ -136,24 +124,19 @@ class DataExplorerApp(wx.App):
 		# 		menu.Enable(status)
 
 	def create_curve(self, event=None):
-		# if self.plotter_frame is None:
-		# 	self.plotter_frame = wx.Frame(self.csv_frame, -1, 'Plotter')
-		# 	self.plotter_frame.SetSize((800, 600))
-		# 	self.plotter = wd.create_plot_notebook(self.plotter_frame)
-
 		selector = wd.TwoDimensionalPlotSelection(self.csv_frame, "Curve Selection Menu", self.data)
 		selector.Show()
 		selector.Raise()
 
-	def create_heatmap(self):
-		pass
+	def create_heatmap(self, event=None):
+		selector = wd.ThreeDimensionalPlotSelection(self.csv_frame, "Curve Selection Menu", self.data)
+		selector.Show()
+		selector.Raise()
 
 	def create_plot(self, format, evt=None, type='scalar'):
 		"""
 		Open up a dialog to configure the selected plot format.
 		"""
-		# available_formats[format](self.csv_frame, headings, rows).Show()
-
 	def OnMenuFileOpen(self, evt=None):
 		try:
 			self.data, self.filename = self._load_csv()
@@ -277,7 +260,7 @@ class DataExplorerApp(wx.App):
 		Written by Stephen Harrigan using code from Dmitri Iouchtchenko.
 		'''
 		)
-
+		info.SetDevelopers(["Stephen Harrigan"])
 		AboutBox(info)
 
 if __name__ == "__main__":
