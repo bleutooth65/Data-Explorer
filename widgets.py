@@ -48,7 +48,7 @@ class TabularDisplayFrame(wx.Frame):
 		self.Layout()
 		self.Show()
 
-	def _init_gui(self, data):
+	def _init_gui(self):
 		self.sizer = wx.BoxSizer(wx.VERTICAL)
 		self.sizer.Add(self.add_table(self.data), 1, wx.EXPAND)
 		self.SetSizer(self.sizer)
@@ -343,7 +343,6 @@ class RenameColumnSelection(wx.Frame):
 
 	def OnTextEntry(self, event):
 		self.text = self.new_text_box.GetValue()
-		print(self.text)
 			
 	def OnXSelect(self, event): 
 		x_index = self.x_selector.GetSelection()
@@ -352,6 +351,7 @@ class RenameColumnSelection(wx.Frame):
 
 	def OnButtonPress(self, event):
 
-		self.parent.data.rename(columns={self.x:self.text})
+		self.parent.data = self.parent.data.rename(columns={self.x:self.text})
+		self.parent.remove_table()
 		self.parent._init_gui()
 		self.Close()

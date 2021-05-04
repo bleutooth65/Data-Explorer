@@ -36,6 +36,7 @@ class DataExplorerApp(wx.App):
 		self.Bind(wx.EVT_MENU, self.OnMenuFileOpen, item)
 
 		self.rename_menu_item = menu.Append(wx.ID_ANY, 'Rename column...')
+		self.rename_menu_item.Enable(False)
 		self.Bind(wx.EVT_MENU, self.rename_column, self.rename_menu_item)
 
 		self.save_menu_item = menu.Append(wx.ID_ANY, 'Save as...')
@@ -184,6 +185,10 @@ class DataExplorerApp(wx.App):
 
 		self.filters = {}
 		self.filter_columns = {}
+
+		self.close_menu_item.Enable(False)
+		self.save_menu_item.Enable(False)
+		self.rename_menu_item.Enable(False)
 
 	def OnMenuFileFilters(self, evt=None):
 		def close_callback(dlg):

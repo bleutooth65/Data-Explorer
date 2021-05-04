@@ -46,135 +46,135 @@
 #     app.MainLoop()
 
 
-import numpy as np
-import pandas as pd
+# import numpy as np
+# import pandas as pd
 
-import wx
-import wx.grid
+# import wx
+# import wx.grid
 
-# EVEN_ROW_COLOUR = '#CCE6FF'
-# GRID_LINE_COLOUR = '#ccc'
+# # EVEN_ROW_COLOUR = '#CCE6FF'
+# # GRID_LINE_COLOUR = '#ccc'
 
-class DataTable(wx.grid.GridTableBase):
-    def __init__(self, data=None):
-        wx.grid.GridTableBase.__init__(self)
-        self.headerRows = 1
-        if data is None:
-            data = pd.DataFrame()
-        self.data = data
+# class DataTable(wx.grid.GridTableBase):
+#     def __init__(self, data=None):
+#         wx.grid.GridTableBase.__init__(self)
+#         self.headerRows = 1
+#         if data is None:
+#             data = pd.DataFrame()
+#         self.data = data
 
-    def GetNumberRows(self):
-        return len(self.data)
+#     def GetNumberRows(self):
+#         return len(self.data)
 
-    def GetNumberCols(self):
-        return len(self.data.columns) + 1
+#     def GetNumberCols(self):
+#         return len(self.data.columns) + 1
 
-    def GetValue(self, row, col):
-        if col == 0:
-            return self.data.index[row]
-        return self.data.iloc[row, col - 1]
+#     def GetValue(self, row, col):
+#         if col == 0:
+#             return self.data.index[row]
+#         return self.data.iloc[row, col - 1]
 
-    def SetValue(self, row, col, value):
-        self.data.iloc[row, col - 1] = value
+#     def SetValue(self, row, col, value):
+#         self.data.iloc[row, col - 1] = value
 
-    def GetColLabelValue(self, col):
-        if col == 0:
-            if self.data.index.name is None:
-                return 'Index'
-            else:
-                return self.data.index.name
-        return str(self.data.columns[col - 1])
+#     def GetColLabelValue(self, col):
+#         if col == 0:
+#             if self.data.index.name is None:
+#                 return 'Index'
+#             else:
+#                 return self.data.index.name
+#         return str(self.data.columns[col - 1])
 
-    def GetTypeName(self, row, col):
-        return wx.grid.GRID_VALUE_STRING
+#     def GetTypeName(self, row, col):
+#         return wx.grid.GRID_VALUE_STRING
 
-    def GetAttr(self, row, col, prop):
-        attr = wx.grid.GridCellAttr()
-        if row % 2 == 1:
-            attr.SetBackgroundColour('#CCE6FF')
-        return attr
-
-
-class MyFrame(wx.Frame):
-    """
-    Frame that holds all other widgets
-    """
-
-    def __init__(self):
-        """Constructor"""
-        wx.Frame.__init__(self, None, wx.ID_ANY, "Pandas")
-        self._init_gui()
-        self.Layout()
-        self.Show()
-
-    def _init_gui(self):
-        df = pd.DataFrame(np.random.random((20, 5)))
-        table = DataTable(df)
-
-        grid = wx.grid.Grid(self, -1)
-        grid.SetTable(table, takeOwnership=True)
-        grid.AutoSizeColumns()
-
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(grid, 1, wx.EXPAND)
-        self.SetSizer(sizer)
-        sizer.SetSizeHints(self)
-
-        self.Bind(wx.EVT_CLOSE, self.exit)
-
-    def exit(self, event):
-        self.Destroy()
+#     def GetAttr(self, row, col, prop):
+#         attr = wx.grid.GridCellAttr()
+#         if row % 2 == 1:
+#             attr.SetBackgroundColour('#CCE6FF')
+#         return attr
 
 
-import wx
+# class MyFrame(wx.Frame):
+#     """
+#     Frame that holds all other widgets
+#     """
 
-class Page(wx.Panel):
-    def __init__(self, parent):
-        wx.Panel.__init__(self, parent)
-        t = wx.StaticText(self, -1, "THIS IS A PAGE OBJECT", (20,20))
+#     def __init__(self):
+#         """Constructor"""
+#         wx.Frame.__init__(self, None, wx.ID_ANY, "Pandas")
+#         self._init_gui()
+#         self.Layout()
+#         self.Show()
 
-class MainFrame(wx.Frame):
-    def __init__(self):
-        wx.Frame.__init__(self, None, title="Notebook Remove Pages Example")
+#     def _init_gui(self):
+#         df = pd.DataFrame(np.random.random((20, 5)))
+#         table = DataTable(df)
 
-        pannel  = wx.Panel(self)
-        vbox    = wx.BoxSizer(wx.VERTICAL)
-        hbox    = wx.BoxSizer(wx.HORIZONTAL)
+#         grid = wx.grid.Grid(self, -1)
+#         grid.SetTable(table, takeOwnership=True)
+#         grid.AutoSizeColumns()
 
-        self.buttonRemove = wx.Button(pannel, id=wx.ID_ANY, label="DELETE", size=(80, 25))
-        self.buttonRemove.Bind(wx.EVT_BUTTON, self.onButtonRemove)
-        hbox.Add(self.buttonRemove)
+#         sizer = wx.BoxSizer(wx.VERTICAL)
+#         sizer.Add(grid, 1, wx.EXPAND)
+#         self.SetSizer(sizer)
+#         sizer.SetSizeHints(self)
 
-        self.buttonInsert = wx.Button(pannel, id=wx.ID_ANY, label="CREATE", size=(80, 25))
-        self.buttonInsert.Bind(wx.EVT_BUTTON, self.onButtonInsert)
-        hbox.Add(self.buttonInsert)
+#         self.Bind(wx.EVT_CLOSE, self.exit)
 
-        vbox.Add(hbox)
+#     def exit(self, event):
+#         self.Destroy()
 
-        self.Notebook3 = wx.Notebook(pannel)
-        vbox.Add(self.Notebook3, 2, flag=wx.EXPAND)
 
-        pannel.SetSizer(vbox)
+# import wx
 
-        self.pageCounter = 0
-        self.addPage()
+# class Page(wx.Panel):
+#     def __init__(self, parent):
+#         wx.Panel.__init__(self, parent)
+#         t = wx.StaticText(self, -1, "THIS IS A PAGE OBJECT", (20,20))
 
-    def addPage(self):
-        self.pageCounter += 1
-        page      = Page(self.Notebook3)
-        pageTitle = "Page: {0}".format(str(self.pageCounter))
-        self.Notebook3.AddPage(page, pageTitle)
+# class MainFrame(wx.Frame):
+#     def __init__(self):
+#         wx.Frame.__init__(self, None, title="Notebook Remove Pages Example")
 
-    def onButtonRemove(self, event):   
-        self.Notebook3.DeletePage(0)
+#         pannel  = wx.Panel(self)
+#         vbox    = wx.BoxSizer(wx.VERTICAL)
+#         hbox    = wx.BoxSizer(wx.HORIZONTAL)
 
-    def onButtonInsert(self, event):   
-        self.addPage()
+#         self.buttonRemove = wx.Button(pannel, id=wx.ID_ANY, label="DELETE", size=(80, 25))
+#         self.buttonRemove.Bind(wx.EVT_BUTTON, self.onButtonRemove)
+#         hbox.Add(self.buttonRemove)
 
-if __name__ == "__main__":
-    app = wx.App()
-    MainFrame().Show()
-    app.MainLoop()
+#         self.buttonInsert = wx.Button(pannel, id=wx.ID_ANY, label="CREATE", size=(80, 25))
+#         self.buttonInsert.Bind(wx.EVT_BUTTON, self.onButtonInsert)
+#         hbox.Add(self.buttonInsert)
+
+#         vbox.Add(hbox)
+
+#         self.Notebook3 = wx.Notebook(pannel)
+#         vbox.Add(self.Notebook3, 2, flag=wx.EXPAND)
+
+#         pannel.SetSizer(vbox)
+
+#         self.pageCounter = 0
+#         self.addPage()
+
+#     def addPage(self):
+#         self.pageCounter += 1
+#         page      = Page(self.Notebook3)
+#         pageTitle = "Page: {0}".format(str(self.pageCounter))
+#         self.Notebook3.AddPage(page, pageTitle)
+
+#     def onButtonRemove(self, event):   
+#         self.Notebook3.DeletePage(0)
+
+#     def onButtonInsert(self, event):   
+#         self.addPage()
+
+# if __name__ == "__main__":
+#     app = wx.App()
+#     MainFrame().Show()
+#     app.MainLoop()
 
 # if __name__ == "__main__":
 #     app = wx.App()
