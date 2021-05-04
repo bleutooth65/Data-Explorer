@@ -43,13 +43,14 @@ class TabularDisplayFrame(wx.Frame):
 	def __init__(self, parent, *args, **kwargs):
 		"""Constructor"""
 		wx.Frame.__init__(self, None, *args, **kwargs)
+		self.parent = parent
 		# self._init_gui()
 		self.Layout()
 		self.Show()
 
 	def _init_gui(self, data):
 		self.sizer = wx.BoxSizer(wx.VERTICAL)
-		self.sizer.Add(self.add_table(data), 1, wx.EXPAND)
+		self.sizer.Add(self.add_table(self.data), 1, wx.EXPAND)
 		self.SetSizer(self.sizer)
 		self.sizer.SetSizeHints(self)
 		self.SetSize((800, 600))
@@ -99,14 +100,14 @@ def create_plot_notebook(frame):
 	return plotter
 
 class TwoDimensionalPlotSelection(wx.Frame): 
-	def __init__(self, parent, title, data): 
+	def __init__(self, parent, title): 
 		super(TwoDimensionalPlotSelection, self).__init__(parent, title = title)
 
 		# Save the data that was passed
-		self.data = data
+		self.data = parent.data
 		self.parent = parent
 		# Make a list of the columns in the data
-		columns = list(data.columns)
+		columns = list(self.data.columns)
 
 		# Set x and y data to none for the moment
 		self.x = None
@@ -181,14 +182,14 @@ class TwoDimensionalPlotSelection(wx.Frame):
 		self.Close()
 
 class ThreeDimensionalPlotSelection(wx.Frame): 
-	def __init__(self, parent, title, data): 
+	def __init__(self, parent, title): 
 		super(ThreeDimensionalPlotSelection, self).__init__(parent, title = title)
 
 		# Save the parent window and the data that was passed
 		self.parent = parent
-		self.data = data
+		self.data = parent.data
 		# Make a list of the columns in the data
-		columns = list(data.columns)
+		columns = list(self.data.columns)
 
 		# Set x and y data to none for the moment
 		self.x = None
@@ -273,10 +274,84 @@ class ThreeDimensionalPlotSelection(wx.Frame):
 		axes = self.plotter.add(self.parent.Title[:-len(' - Data Explorer')]).gca()
 		sns.heatmap(pivotted_data, ax=axes, cbar_kws={'label': self.z})
 		axes.invert_yaxis()
-		axes.set_xlabel(self.x, size=12)
-		axes.set_ylabel(self.y, size=12)
+		axes.set_xlabel(self.x, size=14)
+		axes.set_ylabel(self.y, size=14)
 
 		self.plotter_frame.Show()
 		self.plotter_frame.Raise()
 
+		self.Close()
+
+class RenameColumnSelection(wx.Frame): 
+	def __init__(self, parent, title): 
+		super(RenameColumnSelection, self).__init__(parent, title = title)
+
+		# Save the data that was passed
+		self.data = parent.data
+		self.parent = parent
+		# Make a list of the columns in the data
+		columns = list(self.data.columns)
+
+		# Set x and y data to none for the moment
+		self.x = None
+		self.y = None
+
+		# Create the panel for the plot selector interface
+		panel = wx.Panel(self) 
+
+		# Create a horizontal box sizer, which will contain the x selection interface, the y selection interface and the confirmation button
+		main_box = wx.BoxSizer(wx.HORIZONTAL)
+
+		# Create box for x selection interface
+		x_box = wx.BoxSizer(wx.VERTICAL)
+
+		# Create 'X' text label and place in box
+		x_text = wx.StaticText(panel,label = "X",style = wx.ALIGN_CENTRE) 	
+		x_box.Add(x_text,0,wx.EXPAND|wx.ALL,5)
+
+		# Add ListBox to select 
+		self.x_selector = wx.ListBox(panel,choices = columns, style=wx.CB_SIMPLE) 
+		x_box.Add(self.x_selector,0,wx.EXPAND|wx.ALL,5)
+
+		# Add whole x selector menu into the main box
+		main_box.Add(x_box, 0,wx.EXPAND|wx.ALL,5)
+		
+		# Create box for y selection interface
+		y_box= wx.BoxSizer(wx.VERTICAL)
+
+		# Add ListBox to select
+		y_text = wx.StaticText(panel,label = "New Name",style = wx.ALIGN_CENTRE) 			
+		y_box.Add(y_text, 0 ,wx.EXPAND|wx.ALL,5) 
+
+		self.new_text_box = wx.TextCtrl(panel, value="")
+		y_box.Add(self.new_text_box,0,wx.EXPAND|wx.ALL,5) 
+		main_box.Add(y_box, 0, wx.EXPAND|wx.ALL,5)
+
+		self.button = wx.Button(panel,label="Confirm",style = wx.BU_EXACTFIT)
+		main_box.Add(self.button, 0, wx.SHAPED|wx.ALIGN_CENTER, 5) 
+
+		self.x_selector.Bind(wx.EVT_LISTBOX, self.OnXSelect) 
+		self.new_text_box.Bind(wx.EVT_TEXT, self.OnTextEntry)
+		self.button.Bind(wx.EVT_BUTTON, self.OnButtonPress)
+			
+		# Set size of panel to fit the whole dialog, center it on the frame and then show the window
+
+		panel.SetSizer(main_box)
+		main_box.SetSizeHints(self)
+		self.Centre() 
+		self.Show()
+
+	def OnTextEntry(self, event):
+		self.text = self.new_text_box.GetValue()
+		print(self.text)
+			
+	def OnXSelect(self, event): 
+		x_index = self.x_selector.GetSelection()
+		self.x = self.x_selector.GetString(x_index)
+		self.new_text_box.SetValue(self.x)
+
+	def OnButtonPress(self, event):
+
+		self.parent.data.rename(columns={self.x:self.text})
+		self.parent._init_gui()
 		self.Close()

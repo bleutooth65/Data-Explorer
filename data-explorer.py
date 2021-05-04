@@ -4,7 +4,7 @@ import pandas as pd
 
 from os.path import basename
 
-import widgets.widgets as wd
+import widgets as wd
 
 
 class DataExplorerApp(wx.App):
@@ -18,12 +18,12 @@ class DataExplorerApp(wx.App):
 		self.filter_columns = {}
 		self.filter_dialog = None
 
-		self.data = None
 		# self.plotter = None
 		self.plotter_frame = None
 
 		# Frames.
 		self.csv_frame = wd.TabularDisplayFrame(None, title=self.default_title)
+		self.csv_frame.data = None
 
 		# Menu.
 		menuBar = wx.MenuBar()
@@ -36,7 +36,7 @@ class DataExplorerApp(wx.App):
 		self.Bind(wx.EVT_MENU, self.OnMenuFileOpen, item)
 
 		self.rename_menu_item = menu.Append(wx.ID_ANY, 'Rename column...')
-		self.Bind(wx.EVT_MENU, wd.NotImplemented, self.rename_menu_item)
+		self.Bind(wx.EVT_MENU, self.rename_column, self.rename_menu_item)
 
 		self.save_menu_item = menu.Append(wx.ID_ANY, 'Save as...')
 		self.save_menu_item.Enable(False)
@@ -124,12 +124,17 @@ class DataExplorerApp(wx.App):
 		# 		menu.Enable(status)
 
 	def create_curve(self, event=None):
-		selector = wd.TwoDimensionalPlotSelection(self.csv_frame, "Curve Selection Menu", self.data)
+		selector = wd.TwoDimensionalPlotSelection(self.csv_frame, "Curve Selection Menu")
 		selector.Show()
 		selector.Raise()
 
 	def create_heatmap(self, event=None):
-		selector = wd.ThreeDimensionalPlotSelection(self.csv_frame, "Curve Selection Menu", self.data)
+		selector = wd.ThreeDimensionalPlotSelection(self.csv_frame, "Curve Selection Menu")
+		selector.Show()
+		selector.Raise()
+
+	def rename_column(self, event=None):
+		selector = wd.RenameColumnSelection(self.csv_frame, "Rename column")
 		selector.Show()
 		selector.Raise()
 
@@ -139,7 +144,7 @@ class DataExplorerApp(wx.App):
 		"""
 	def OnMenuFileOpen(self, evt=None):
 		try:
-			self.data, self.filename = self._load_csv()
+			self.csv_frame.data, self.filename = self._load_csv()
 		except IOError as e:
 			wx.MessageDialog(self.csv_frame, str(e), 'Could not load data').Show()
 			return
@@ -162,7 +167,7 @@ class DataExplorerApp(wx.App):
 		self.rename_menu_item.Enable(True)
 
 		# self.data = pd.DataFrame(values[1:], columns=values[0], dtype='float64')
-		self.csv_frame._init_gui(self.data)
+		self.csv_frame._init_gui()
 		# self.filename = filename
 
 	def OnMenuFileClose(self, evt=None):
