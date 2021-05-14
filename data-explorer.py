@@ -222,7 +222,7 @@ class DataExplorerApp(wx.App):
 
 		# self.csv_frame.display_panel.SetValue(new_headings,new_rows)
 
-	def OnMenuMathFunction(self, format, evt=None, type='scalar'):
+	def OnMenuMathFunction(self, evt=None):
 		"""
 		Open up a dialog to apply a scalar function of one variable
 		"""
@@ -230,19 +230,15 @@ class DataExplorerApp(wx.App):
 		selector.Show()
 		selector.Raise()
 
-	def OnMenuMathFunction2arg(self, format, evt=None, type='scalar'):
+	def OnMenuMathFunction2arg(self, evt=None):
 		"""
 		Open up a dialog to apply a scalar function of two variables
 		"""
-		headings, rows, types = self.csv_frame.display_panel.GetValue(types=[type])
-		# dmath = FunctionMathSetupDialog2arg(self.csv_frame, headings, rows)
-		# dmath_open = dmath.ShowModal()
-				
-		# new_headings = headings
-		# new_headings.append(dmath.dheading)
-		# new_rows = concatenate([rows.astype(float),dmath.ddata],1)
+		selector = wd.TwoArgFunctionSelection(self.csv_frame, "Function Selector")
+		selector.Show()
+		selector.Raise()
 
-		# self.csv_frame.display_panel.SetValue(new_headings,new_rows)
+		
 
 	@staticmethod
 	def _load_csv():
