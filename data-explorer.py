@@ -212,15 +212,9 @@ class DataExplorerApp(wx.App):
 		"""
 		Open up a dialog to calculate derivative
 		"""
-		# headings, rows, types = self.csv_frame.display_panel.GetValue(types=[type])
-		# dmath = DerivativeMathSetupDialog(self.csv_frame, headings, rows)
-		# dmath_open = dmath.ShowModal()
-
-		# new_headings = headings
-		# new_headings.append(dmath.dheading)
-		# new_rows = concatenate([rows.astype(float),dmath.ddata],1)
-
-		# self.csv_frame.display_panel.SetValue(new_headings,new_rows)
+		selector = wd.DerivativeSelection(self.csv_frame, "Derivative Selector")
+		selector.Show()
+		selector.Raise()
 
 	def OnMenuMathFunction(self, evt=None):
 		"""
