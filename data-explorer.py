@@ -139,10 +139,10 @@ class DataExplorerApp(wx.App):
 		selector.Show()
 		selector.Raise()
 
-	def create_plot(self, format, evt=None, type='scalar'):
-		"""
-		Open up a dialog to configure the selected plot format.
-		"""
+	# def create_plot(self, format, evt=None, type='scalar'):
+	# 	"""
+	# 	Open up a dialog to configure the selected plot format.
+	# 	"""
 	def OnMenuFileOpen(self, evt=None):
 		try:
 			self.csv_frame.data, self.filename = self._load_csv()
@@ -226,15 +226,9 @@ class DataExplorerApp(wx.App):
 		"""
 		Open up a dialog to apply a scalar function of one variable
 		"""
-		# headings, rows, types = self.csv_frame.display_panel.GetValue(types=[type])
-		# dmath = FunctionMathSetupDialog(self.csv_frame, headings, rows)
-		# dmath_open = dmath.ShowModal()
-				
-		# new_headings = headings
-		# new_headings.append(dmath.dheading)
-		# new_rows = concatenate([rows.astype(float),dmath.ddata],1)
-
-		# self.csv_frame.display_panel.SetValue(new_headings,new_rows)
+		selector = wd.OneArgFunctionSelection(self.csv_frame, "Function Selector")
+		selector.Show()
+		selector.Raise()
 
 	def OnMenuMathFunction2arg(self, format, evt=None, type='scalar'):
 		"""

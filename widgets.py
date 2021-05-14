@@ -355,3 +355,87 @@ class RenameColumnSelection(wx.Frame):
 		self.parent.remove_table()
 		self.parent._init_gui()
 		self.Close()
+
+class OneArgFunctionSelection(wx.Frame):
+	def __init__(self, parent, title): 
+		super(OneArgFunctionSelection, self).__init__(parent, title = title)
+
+		# Save the data that was passed
+		# self.data = parent.data
+		self.parent = parent
+		# Make a list of the columns in the data
+		columns = list(self.parent.data.columns)
+
+		# Set x and y data to none for the moment
+		self.x = None
+
+		# Create the panel for the plot selector interface
+		panel = wx.Panel(self) 
+
+		# Create a horizontal box sizer, which will contain the x selection interface, the y selection interface and the confirmation button
+		main_box = wx.BoxSizer(wx.HORIZONTAL)
+
+		# Create box for x selection interface
+		x_box = wx.BoxSizer(wx.VERTICAL)
+
+		# Create 'X' text label and place in box
+		x_text = wx.StaticText(panel,label = "x",style = wx.ALIGN_CENTRE) 	
+		x_box.Add(x_text,0,wx.EXPAND|wx.ALL,5)
+
+		# Add ListBox to select 
+		self.x_selector = wx.ListBox(panel,choices = columns, style=wx.CB_SIMPLE) 
+		x_box.Add(self.x_selector,0,wx.EXPAND|wx.ALL,5)
+
+		# Add whole x selector menu into the main box
+		main_box.Add(x_box, 0,wx.EXPAND|wx.ALL,5)
+		
+		# Create box for y selection interface
+		y_box= wx.BoxSizer(wx.VERTICAL)
+
+		# Add ListBox to select
+		y_text = wx.StaticText(panel,label = "Expression of x",style = wx.ALIGN_CENTRE) 			
+		y_box.Add(y_text, 0 ,wx.EXPAND|wx.ALL,5) 
+
+		self.expression_box = wx.TextCtrl(panel, value="")
+		y_box.Add(self.expression_box,0,wx.EXPAND|wx.ALL,5) 
+
+		y_text = wx.StaticText(panel,label = "Column Name",style = wx.ALIGN_CENTRE) 			
+		y_box.Add(y_text, 0 ,wx.EXPAND|wx.ALL,5) 
+
+		self.name_box = wx.TextCtrl(panel, value="")
+		y_box.Add(self.name_box,0,wx.EXPAND|wx.ALL,5)
+
+		main_box.Add(y_box, 0, wx.EXPAND|wx.ALL,5)
+
+		self.button = wx.Button(panel,label="Confirm",style = wx.BU_EXACTFIT)
+		main_box.Add(self.button, 0, wx.SHAPED|wx.ALIGN_CENTER, 5) 
+
+		self.x_selector.Bind(wx.EVT_LISTBOX, self.OnXSelect) 
+		self.expression_box.Bind(wx.EVT_TEXT, self.OnExpressionEntry)
+		self.name_box.Bind(wx.EVT_TEXT, self.OnNameEntry)
+		self.button.Bind(wx.EVT_BUTTON, self.OnButtonPress)
+			
+		# Set size of panel to fit the whole dialog, center it on the frame and then show the window
+
+		panel.SetSizer(main_box)
+		main_box.SetSizeHints(self)
+		self.Centre() 
+		self.Show()
+
+	def OnExpressionEntry(self, event):
+		self.expression = self.expression_box.GetValue()
+
+	def OnNameEntry(self, event):
+		self.name = self.name_box.GetValue()
+			
+	def OnXSelect(self, event): 
+		x_index = self.x_selector.GetSelection()
+		self.x = self.x_selector.GetString(x_index)
+		#self.new_text_box.SetValue('X')
+
+	def OnButtonPress(self, event):
+		new_column = eval(self.expression.replace('x', f'self.parent.data["{self.x}"]'))
+		self.parent.data[self.name] = new_column
+		self.parent.remove_table()
+		self.parent._init_gui()
+		self.Close()
