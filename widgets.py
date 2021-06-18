@@ -273,7 +273,7 @@ class ThreeDimensionalPlotSelection(wx.Frame):
 		pivotted_data = self.data.pivot(index=self.y, columns=self.x, values=self.z)
 
 		axes = self.plotter.add(self.parent.Title[:-len(' - Data Explorer')]).gca()
-		sns.heatmap(pivotted_data, ax=axes, cbar_kws={'label': self.z})
+		sns.heatmap(pivotted_data, ax=axes, cbar_kws={'label': self.z}, robust=True, xticklabels=8, yticklabels=10)
 		axes.invert_yaxis()
 		axes.set_xlabel(self.x, size=14)
 		axes.set_ylabel(self.y, size=14)
