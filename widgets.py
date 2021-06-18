@@ -357,6 +357,79 @@ class RenameColumnSelection(wx.Frame):
 		self.parent._init_gui()
 		self.Close()
 
+class RoundColumnSelection(wx.Frame): 
+	def __init__(self, parent, title): 
+		super(RoundColumnSelection, self).__init__(parent, title = title)
+
+		# Save the data that was passed
+		self.data = parent.data
+		self.parent = parent
+		# Make a list of the columns in the data
+		columns = list(self.data.columns)
+
+		# Set x and y data to none for the moment
+		self.x = None
+		self.y = None
+
+		# Create the panel for the plot selector interface
+		panel = wx.Panel(self) 
+
+		# Create a horizontal box sizer, which will contain the x selection interface, the y selection interface and the confirmation button
+		main_box = wx.BoxSizer(wx.HORIZONTAL)
+
+		# Create box for x selection interface
+		x_box = wx.BoxSizer(wx.VERTICAL)
+
+		# Create 'X' text label and place in box
+		x_text = wx.StaticText(panel,label = "X",style = wx.ALIGN_CENTRE) 	
+		x_box.Add(x_text,0,wx.EXPAND|wx.ALL,5)
+
+		# Add ListBox to select 
+		self.x_selector = wx.ListBox(panel,choices = columns, style=wx.CB_SIMPLE) 
+		x_box.Add(self.x_selector,0,wx.EXPAND|wx.ALL,5)
+
+		# Add whole x selector menu into the main box
+		main_box.Add(x_box, 0,wx.EXPAND|wx.ALL,5)
+		
+		# Create box for y selection interface
+		y_box= wx.BoxSizer(wx.VERTICAL)
+
+		# Add ListBox to select
+		y_text = wx.StaticText(panel,label = "Round to n digits",style = wx.ALIGN_CENTRE) 			
+		y_box.Add(y_text, 0 ,wx.EXPAND|wx.ALL,5) 
+
+		self.new_text_box = wx.TextCtrl(panel, value="")
+		y_box.Add(self.new_text_box,0,wx.EXPAND|wx.ALL,5) 
+		main_box.Add(y_box, 0, wx.EXPAND|wx.ALL,5)
+
+		self.button = wx.Button(panel,label="Confirm",style = wx.BU_EXACTFIT)
+		main_box.Add(self.button, 0, wx.SHAPED|wx.ALIGN_CENTER, 5) 
+
+		self.x_selector.Bind(wx.EVT_LISTBOX, self.OnXSelect) 
+		self.new_text_box.Bind(wx.EVT_TEXT, self.OnTextEntry)
+		self.button.Bind(wx.EVT_BUTTON, self.OnButtonPress)
+			
+		# Set size of panel to fit the whole dialog, center it on the frame and then show the window
+
+		panel.SetSizer(main_box)
+		main_box.SetSizeHints(self)
+		self.Centre() 
+		self.Show()
+
+	def OnTextEntry(self, event):
+		self.text = self.new_text_box.GetValue()
+			
+	def OnXSelect(self, event): 
+		x_index = self.x_selector.GetSelection()
+		self.x = self.x_selector.GetString(x_index)
+		# self.new_text_box.SetValue(self.x)
+
+	def OnButtonPress(self, event):
+		self.parent.data = self.parent.data.round({self.x:int(self.text)})
+		self.parent.remove_table()
+		self.parent._init_gui()
+		self.Close()
+
 class OneArgFunctionSelection(wx.Frame):
 	def __init__(self, parent, title): 
 		super(OneArgFunctionSelection, self).__init__(parent, title = title)

@@ -39,6 +39,10 @@ class DataExplorerApp(wx.App):
 		self.rename_menu_item.Enable(False)
 		self.Bind(wx.EVT_MENU, self.rename_column, self.rename_menu_item)
 
+		self.round_menu_item = menu.Append(wx.ID_ANY, 'Round column...')
+		self.round_menu_item.Enable(False)
+		self.Bind(wx.EVT_MENU, self.round_column, self.round_menu_item)
+
 		self.save_menu_item = menu.Append(wx.ID_ANY, 'Save as...')
 		self.save_menu_item.Enable(False)
 		self.Bind(wx.EVT_MENU, wd.NotImplemented, self.save_menu_item)
@@ -139,6 +143,11 @@ class DataExplorerApp(wx.App):
 		selector.Show()
 		selector.Raise()
 
+	def round_column(self, event=None):
+		selector = wd.RoundColumnSelection(self.csv_frame, "Round column")
+		selector.Show()
+		selector.Raise()
+
 	# def create_plot(self, format, evt=None, type='scalar'):
 	# 	"""
 	# 	Open up a dialog to configure the selected plot format.
@@ -166,6 +175,7 @@ class DataExplorerApp(wx.App):
 		self.close_menu_item.Enable(True)
 		self.save_menu_item.Enable(True)
 		self.rename_menu_item.Enable(True)
+		self.round_menu_item.Enable(True)
 
 		# self.data = pd.DataFrame(values[1:], columns=values[0], dtype='float64')
 		self.csv_frame._init_gui()
