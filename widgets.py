@@ -73,7 +73,7 @@ class TabularDisplayFrame(wx.Frame):
 class Plot(wx.Panel):
 	def __init__(self, parent, id=-1, dpi=None, **kwargs):
 		wx.Panel.__init__(self, parent, id=id, **kwargs)
-		self.figure = mpl.figure.Figure(dpi=dpi, figsize=(2, 2))
+		self.figure, self.axes = mpl.pyplot.subplots()
 		self.canvas = FigureCanvas(self, -1, self.figure)
 		self.toolbar = NavigationToolbar(self.canvas)
 		self.toolbar.Realize()
@@ -82,23 +82,6 @@ class Plot(wx.Panel):
 		sizer.Add(self.canvas, 1, wx.EXPAND)
 		sizer.Add(self.toolbar, 0, wx.LEFT | wx.EXPAND)
 		self.SetSizer(sizer)
-
-class PlotNotebook(wx.Panel):
-	def __init__(self, parent, id=-1):
-		wx.Panel.__init__(self, parent, id=id)
-		self.nb = wx.Notebook(self)
-		sizer = wx.BoxSizer()
-		sizer.Add(self.nb, 1, wx.EXPAND)
-		self.SetSizer(sizer)
-
-	def add(self, name="plot"):
-		page = Plot(self.nb)
-		self.nb.AddPage(page, name)
-		return page.figure
-
-def create_plot_notebook(frame):
-	plotter = PlotNotebook(frame)
-	return plotter
 
 class TwoDimensionalPlotSelection(wx.Frame): 
 	def __init__(self, parent, title): 
@@ -268,15 +251,19 @@ class ThreeDimensionalPlotSelection(wx.Frame):
 	def OnButtonPress(self, event):
 		self.plotter_frame = wx.Frame(self.parent, -1, self.parent.Title[:-len(' - Data Explorer')])
 		self.plotter_frame.SetSize((800, 800))
-		self.plotter = create_plot_notebook(self.plotter_frame)
+		self.plotter = Plot(self.plotter_frame)
 
 		pivotted_data = self.data.pivot(index=self.y, columns=self.x, values=self.z)
 
-		axes = self.plotter.add(self.parent.Title[:-len(' - Data Explorer')]).gca()
-		sns.heatmap(pivotted_data, ax=axes, cbar_kws={'label': self.z}, robust=True, xticklabels=8, yticklabels=10)
-		axes.invert_yaxis()
+		figure = self.plotter.figure
+		axes = self.plotter.axes
+		
+		pc = axes.pcolormesh(pivotted_data.columns, pivotted_data.index, pivotted_data)
 		axes.set_xlabel(self.x, size=14)
 		axes.set_ylabel(self.y, size=14)
+
+		cbar = figure.colorbar(pc)
+		cbar.set_label(self.z)
 
 		self.plotter_frame.Show()
 		self.plotter_frame.Raise()
