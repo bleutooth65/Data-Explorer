@@ -153,9 +153,9 @@ class TwoDimensionalPlotSelection(wx.Frame):
 	def OnButtonPress(self, event):
 		self.plotter_frame = wx.Frame(self.parent, -1, self.parent.Title[:-len(' - Data Explorer')])
 		self.plotter_frame.SetSize((800, 600))
-		self.plotter = create_plot_notebook(self.plotter_frame)
+		self.plotter = Plot(self.plotter_frame)
 
-		axes = self.plotter.add(self.parent.Title[:-len(' - Data Explorer')]).gca()
+		axes = self.plotter.axes
 		axes.plot(self.x, self.y, data=self.data)
 		axes.set_xlabel(self.x, size=12)
 		axes.set_ylabel(self.y, size=12)
