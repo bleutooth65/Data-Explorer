@@ -71,17 +71,37 @@ class TabularDisplayFrame(wx.Frame):
 		self.Destroy()
 
 class Plot(wx.Panel):
-	def __init__(self, parent, id=-1, dpi=None, **kwargs):
+	def __init__(self, parent, id=-1, heatmap=False, dpi=None, **kwargs):
 		wx.Panel.__init__(self, parent, id=id, **kwargs)
 		self.figure, self.axes = mpl.pyplot.subplots()
 		self.canvas = FigureCanvas(self, -1, self.figure)
 		self.toolbar = NavigationToolbar(self.canvas)
-		self.toolbar.Realize()
 
-		sizer = wx.BoxSizer(wx.VERTICAL)
-		sizer.Add(self.canvas, 1, wx.EXPAND)
-		sizer.Add(self.toolbar, 0, wx.LEFT | wx.EXPAND)
-		self.SetSizer(sizer)
+		self.sizer = wx.BoxSizer(wx.VERTICAL)
+		self.sizer.Add(self.canvas, 1, wx.EXPAND)
+		if heatmap is True:
+			v_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+			min_text = wx.StaticText(self,label = "Min",style = wx.ALIGN_CENTRE) 	
+			v_sizer.Add(min_text,0,wx.EXPAND|wx.ALL,5)
+			self.min_text_box = wx.TextCtrl(self, value="0")
+			v_sizer.Add(self.min_text_box, 0, wx.CENTER | wx.EXPAND)
+
+			max_text = wx.StaticText(self,label = "Max",style = wx.ALIGN_CENTRE) 	
+			v_sizer.Add(max_text,0,wx.EXPAND|wx.ALL,5)
+			self.max_text_box = wx.TextCtrl(self, value="1")
+			v_sizer.Add(self.max_text_box, 0, wx.CENTER | wx.EXPAND)
+
+			self.sizer.Add(v_sizer, 0, wx.RIGHT)
+
+		self.sizer.Add(self.toolbar, 0, wx.LEFT | wx.EXPAND)
+		self.toolbar.Realize()
+		self.SetSizer(self.sizer)
+	
+	def OnMinTextEntry(self, event):
+		self.text = self.new_text_box.GetValue()
+		
+		self.canvas.draw()
 
 class TwoDimensionalPlotSelection(wx.Frame): 
 	def __init__(self, parent, title): 
@@ -249,11 +269,11 @@ class ThreeDimensionalPlotSelection(wx.Frame):
 		self.z = self.z_selector.GetString(z_index)
 
 	def OnButtonPress(self, event):
+		pivotted_data = self.data.pivot(index=self.y, columns=self.x, values=self.z)
+
 		self.plotter_frame = wx.Frame(self.parent, -1, self.parent.Title[:-len(' - Data Explorer')])
 		self.plotter_frame.SetSize((800, 800))
-		self.plotter = Plot(self.plotter_frame)
-
-		pivotted_data = self.data.pivot(index=self.y, columns=self.x, values=self.z)
+		self.plotter = Plot(self.plotter_frame, heatmap=True)
 
 		figure = self.plotter.figure
 		axes = self.plotter.axes
@@ -321,7 +341,7 @@ class RenameColumnSelection(wx.Frame):
 		self.x_selector.Bind(wx.EVT_LISTBOX, self.OnXSelect) 
 		self.new_text_box.Bind(wx.EVT_TEXT, self.OnTextEntry)
 		self.button.Bind(wx.EVT_BUTTON, self.OnButtonPress)
-			
+
 		# Set size of panel to fit the whole dialog, center it on the frame and then show the window
 
 		panel.SetSizer(main_box)
