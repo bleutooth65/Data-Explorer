@@ -5,7 +5,6 @@ File which contains all of the custom widgets created for the Data Explorer
 import wx
 import numpy as np
 import pandas as pd
-import seaborn as sns
 
 import matplotlib as mpl
 from matplotlib.backends.backend_wxagg import (
