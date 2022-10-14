@@ -1,13 +1,10 @@
 import wx
-import wx.adv as adv
+from wx.adv import AboutBox, AboutDialogInfo
 import pandas as pd
-import numpy as np
 
 from os.path import basename
-from functools import partial
-import time
 
-import widgets.widgets as wd
+import widgets as wd
 
 
 class DataExplorerApp(wx.App):
@@ -21,11 +18,12 @@ class DataExplorerApp(wx.App):
 		self.filter_columns = {}
 		self.filter_dialog = None
 
-		self.data = None
-		self.plotter = None
+		# self.plotter = None
+		self.plotter_frame = None
 
 		# Frames.
 		self.csv_frame = wd.TabularDisplayFrame(None, title=self.default_title)
+		self.csv_frame.data = None
 
 		# Menu.
 		menuBar = wx.MenuBar()
@@ -36,6 +34,18 @@ class DataExplorerApp(wx.App):
 
 		item = menu.Append(wx.ID_OPEN, 'Open...')
 		self.Bind(wx.EVT_MENU, self.OnMenuFileOpen, item)
+
+		self.rename_menu_item = menu.Append(wx.ID_ANY, 'Rename column...')
+		self.rename_menu_item.Enable(False)
+		self.Bind(wx.EVT_MENU, self.rename_column, self.rename_menu_item)
+
+		self.round_menu_item = menu.Append(wx.ID_ANY, 'Round column...')
+		self.round_menu_item.Enable(False)
+		self.Bind(wx.EVT_MENU, self.round_column, self.round_menu_item)
+
+		self.save_menu_item = menu.Append(wx.ID_ANY, 'Save as...')
+		self.save_menu_item.Enable(False)
+		self.Bind(wx.EVT_MENU, wd.NotImplemented, self.save_menu_item)
 
 		self.close_menu_item = menu.Append(wx.ID_CLOSE, 'Close')
 		self.close_menu_item.Enable(False)
@@ -59,26 +69,14 @@ class DataExplorerApp(wx.App):
 		menu.Append(wx.ID_ANY, ' 2D:').Enable(False)
 
 		self.two_dimensional_menu = menu.Append(wx.ID_ANY, 'Curve...')
-		#self.Bind(wx.EVT_MENU, wd.NotImplemented, self.two_dimensional_menu)
 		self.Bind(wx.EVT_MENU, self.create_curve, self.two_dimensional_menu) 
-		#partial(self.create_plot, formats.two_dimensional),self.two_dimensional_menu)
 
 		menu.AppendSeparator()
 
 		menu.Append(wx.ID_ANY, ' 3D:').Enable(False)
 
-		self.colormapped_menu = menu.Append(wx.ID_ANY, 'Colormapped...')
-		self.Bind(wx.EVT_MENU, wd.NotImplemented, self.colormapped_menu) # self.Bind(wx.EVT_MENU, partial(self.create_plot, formats.colormapped), self.colormapped_menu)
-
-		self.surface_menu = menu.Append(wx.ID_ANY, 'Surface...')
-		self.Bind(wx.EVT_MENU, wd.NotImplemented,  self.surface_menu) # self.Bind(wx.EVT_MENU, partial(self.create_plot, formats.surface), self.surface_menu)
-
-		menu.AppendSeparator()
-
-		menu.Append(wx.ID_ANY, ' List:').Enable(False)
-
-		self.waveforms_menu = menu.Append(wx.ID_ANY, '&Waveforms...')
-		self.Bind(wx.EVT_MENU, wd.NotImplemented, self.waveforms_menu) # self.Bind(wx.EVT_MENU, partial(self.create_plot, formats.waveforms, type='list'), self.waveforms_menu)
+		self.colormapped_menu = menu.Append(wx.ID_ANY, 'Color Map...')
+		self.Bind(wx.EVT_MENU, self.create_heatmap, self.colormapped_menu)
 
 		## Math.
 		menu = wx.Menu()
@@ -131,27 +129,32 @@ class DataExplorerApp(wx.App):
 		# 		menu.Enable(status)
 
 	def create_curve(self, event=None):
-		if self.plotter is None:
-			self.plotter_frame = wx.Frame(self.csv_frame, -1, 'Plotter')
-			self.plotter_frame.SetSize((800, 600))
-			self.plotter = wd.create_plot_notebook(self.plotter_frame)
-
-		selector = wd.TwoDimensionalPlotSelection(self.csv_frame, "Curve Selection Menu", self.data)
+		selector = wd.TwoDimensionalPlotSelection(self.csv_frame, "Curve Selection Menu")
 		selector.Show()
 		selector.Raise()
 
-	def create_heatmap(self):
-		pass
+	def create_heatmap(self, event=None):
+		selector = wd.ThreeDimensionalPlotSelection(self.csv_frame, "Curve Selection Menu")
+		selector.Show()
+		selector.Raise()
 
-	def create_plot(self, format, evt=None, type='scalar'):
-		"""
-		Open up a dialog to configure the selected plot format.
-		"""
-		# available_formats[format](self.csv_frame, headings, rows).Show()
+	def rename_column(self, event=None):
+		selector = wd.RenameColumnSelection(self.csv_frame, "Rename column")
+		selector.Show()
+		selector.Raise()
 
+	def round_column(self, event=None):
+		selector = wd.RoundColumnSelection(self.csv_frame, "Round column")
+		selector.Show()
+		selector.Raise()
+
+	# def create_plot(self, format, evt=None, type='scalar'):
+	# 	"""
+	# 	Open up a dialog to configure the selected plot format.
+	# 	"""
 	def OnMenuFileOpen(self, evt=None):
 		try:
-			self.data, self.filename = self._load_csv()
+			self.csv_frame.data, self.filename = self._load_csv()
 		except IOError as e:
 			wx.MessageDialog(self.csv_frame, str(e), 'Could not load data').Show()
 			return
@@ -170,9 +173,12 @@ class DataExplorerApp(wx.App):
 
 		# self.filter_menu_item.Enable(True)
 		self.close_menu_item.Enable(True)
+		self.save_menu_item.Enable(True)
+		self.rename_menu_item.Enable(True)
+		self.round_menu_item.Enable(True)
 
 		# self.data = pd.DataFrame(values[1:], columns=values[0], dtype='float64')
-		self.csv_frame._init_gui(self.data)
+		self.csv_frame._init_gui()
 		# self.filename = filename
 
 	def OnMenuFileClose(self, evt=None):
@@ -189,6 +195,10 @@ class DataExplorerApp(wx.App):
 
 		self.filters = {}
 		self.filter_columns = {}
+
+		self.close_menu_item.Enable(False)
+		self.save_menu_item.Enable(False)
+		self.rename_menu_item.Enable(False)
 
 	def OnMenuFileFilters(self, evt=None):
 		def close_callback(dlg):
@@ -212,43 +222,27 @@ class DataExplorerApp(wx.App):
 		"""
 		Open up a dialog to calculate derivative
 		"""
-		# headings, rows, types = self.csv_frame.display_panel.GetValue(types=[type])
-		# dmath = DerivativeMathSetupDialog(self.csv_frame, headings, rows)
-		# dmath_open = dmath.ShowModal()
+		selector = wd.DerivativeSelection(self.csv_frame, "Derivative Selector")
+		selector.Show()
+		selector.Raise()
 
-		# new_headings = headings
-		# new_headings.append(dmath.dheading)
-		# new_rows = concatenate([rows.astype(float),dmath.ddata],1)
-
-		# self.csv_frame.display_panel.SetValue(new_headings,new_rows)
-
-	def OnMenuMathFunction(self, format, evt=None, type='scalar'):
+	def OnMenuMathFunction(self, evt=None):
 		"""
 		Open up a dialog to apply a scalar function of one variable
 		"""
-		# headings, rows, types = self.csv_frame.display_panel.GetValue(types=[type])
-		# dmath = FunctionMathSetupDialog(self.csv_frame, headings, rows)
-		# dmath_open = dmath.ShowModal()
-				
-		# new_headings = headings
-		# new_headings.append(dmath.dheading)
-		# new_rows = concatenate([rows.astype(float),dmath.ddata],1)
+		selector = wd.OneArgFunctionSelection(self.csv_frame, "Function Selector")
+		selector.Show()
+		selector.Raise()
 
-		# self.csv_frame.display_panel.SetValue(new_headings,new_rows)
-
-	def OnMenuMathFunction2arg(self, format, evt=None, type='scalar'):
+	def OnMenuMathFunction2arg(self, evt=None):
 		"""
 		Open up a dialog to apply a scalar function of two variables
 		"""
-		headings, rows, types = self.csv_frame.display_panel.GetValue(types=[type])
-		# dmath = FunctionMathSetupDialog2arg(self.csv_frame, headings, rows)
-		# dmath_open = dmath.ShowModal()
-				
-		# new_headings = headings
-		# new_headings.append(dmath.dheading)
-		# new_rows = concatenate([rows.astype(float),dmath.ddata],1)
+		selector = wd.TwoArgFunctionSelection(self.csv_frame, "Function Selector")
+		selector.Show()
+		selector.Raise()
 
-		# self.csv_frame.display_panel.SetValue(new_headings,new_rows)
+		
 
 	@staticmethod
 	def _load_csv():
@@ -264,14 +258,14 @@ class DataExplorerApp(wx.App):
 			return df, filename
 
 	def OnMenuHelpAbout(self, evt=None):
-		info = adv.AboutDialogInfo()
+		info = AboutDialogInfo()
 		info.SetName('Data Explorer')
 		info.SetDescription('''An application for displaying data in tabular and graphical form.\n
 		Written by Stephen Harrigan using code from Dmitri Iouchtchenko.
 		'''
 		)
-
-		adv.AboutBox(info)
+		info.SetDevelopers(["Stephen Harrigan"])
+		AboutBox(info)
 
 if __name__ == "__main__":
 	#import wx.lib.inspection
