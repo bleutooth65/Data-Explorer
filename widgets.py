@@ -6,7 +6,7 @@ import wx
 import numpy as np
 import pandas as pd
 
-import matplotlib as mpl
+import matplotlib.pyplot as plt
 from matplotlib.backends.backend_wxagg import (
     FigureCanvasWxAgg as FigureCanvas,
     NavigationToolbar2WxAgg as NavigationToolbar)
@@ -72,7 +72,7 @@ class TabularDisplayFrame(wx.Frame):
 class Plot(wx.Panel):
 	def __init__(self, parent, id=-1, heatmap=False, dpi=None, **kwargs):
 		wx.Panel.__init__(self, parent, id=id, **kwargs)
-		self.figure, self.axes = mpl.pyplot.subplots()
+		self.figure, self.axes = plt.subplots()
 		self.canvas = FigureCanvas(self, -1, self.figure)
 		self.toolbar = NavigationToolbar(self.canvas)
 
