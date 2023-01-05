@@ -240,9 +240,7 @@ class DataExplorerApp(wx.App):
 		"""
 		selector = wd.TwoArgFunctionSelection(self.csv_frame, "Function Selector")
 		selector.Show()
-		selector.Raise()
-
-		
+		selector.Raise()		
 
 	@staticmethod
 	def _load_csv():

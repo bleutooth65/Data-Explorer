@@ -70,7 +70,7 @@ class TabularDisplayFrame(wx.Frame):
 		self.Destroy()
 
 class Plot(wx.Panel):
-	def __init__(self, parent, id=-1, heatmap=False, dpi=None, **kwargs):
+	def __init__(self, parent, id=-1, heatmap=False, dpi=None, min=None, max=None, **kwargs):
 		wx.Panel.__init__(self, parent, id=id, **kwargs)
 		self.figure, self.axes = plt.subplots()
 		self.canvas = FigureCanvas(self, -1, self.figure)
@@ -83,12 +83,16 @@ class Plot(wx.Panel):
 
 			min_text = wx.StaticText(self,label = "Min",style = wx.ALIGN_CENTRE) 	
 			v_sizer.Add(min_text,0,wx.EXPAND|wx.ALL,5)
-			self.min_text_box = wx.TextCtrl(self, value="0")
+			self.min_text_box = wx.TextCtrl(self, value=min)
+			self.min_text = min
+			self.min_text_box.Bind(wx.EVT_TEXT, self.OnMinTextEntry)
 			v_sizer.Add(self.min_text_box, 0, wx.CENTER | wx.EXPAND)
 
 			max_text = wx.StaticText(self,label = "Max",style = wx.ALIGN_CENTRE) 	
 			v_sizer.Add(max_text,0,wx.EXPAND|wx.ALL,5)
-			self.max_text_box = wx.TextCtrl(self, value="1")
+			self.max_text_box = wx.TextCtrl(self, value=max)
+			self.max_text = max
+			self.max_text_box.Bind(wx.EVT_TEXT, self.OnMaxtextEntry)
 			v_sizer.Add(self.max_text_box, 0, wx.CENTER | wx.EXPAND)
 
 			self.sizer.Add(v_sizer, 0, wx.RIGHT)
@@ -98,9 +102,45 @@ class Plot(wx.Panel):
 		self.SetSizer(self.sizer)
 	
 	def OnMinTextEntry(self, event):
-		self.text = self.new_text_box.GetValue()
+		self.min_text = self.min_text_box.GetValue()
 		
-		self.canvas.draw()
+		try:
+			self.update_plot(min=float(self.min_text), max=float(self.max_text))
+		except ValueError:
+			pass
+
+	def OnMaxtextEntry(self, event):
+		self.max_text = self.max_text_box.GetValue()
+		
+		try:
+			self.update_plot(min=float(self.min_text), max=float(self.max_text))
+		except ValueError:
+			pass
+
+	def make_plot(self, x, y, z, data):
+		self.x = x
+		self.y = y
+		self.z = z
+		self.data = data
+		
+		self.pc = self.axes.pcolormesh(self.data.columns, self.data.index, self.data)
+		self.axes.set_xlabel(self.x, size=14)
+		self.axes.set_ylabel(self.y, size=14)
+
+		self.cbar = self.figure.colorbar(self.pc)
+		self.cbar.set_label(self.z)
+
+	def update_plot(self, min=None, max=None):
+
+		self.pc = self.axes.pcolormesh(self.data.columns, self.data.index, self.data, vmin=min, vmax=max)
+		self.axes.set_xlabel(self.x, size=14)
+		self.axes.set_ylabel(self.y, size=14)
+
+		self.cbar.remove()
+		self.cbar = self.figure.colorbar(self.pc)
+		self.cbar.set_label(self.z)
+		self.cbar.draw_all()
+		self.figure.canvas.draw()
 
 class TwoDimensionalPlotSelection(wx.Frame): 
 	def __init__(self, parent, title): 
@@ -268,21 +308,15 @@ class ThreeDimensionalPlotSelection(wx.Frame):
 		self.z = self.z_selector.GetString(z_index)
 
 	def OnButtonPress(self, event):
+		min = self.data[self.z].min()
+		max = self.data[self.z].max()
 		pivotted_data = self.data.pivot(index=self.y, columns=self.x, values=self.z)
 
 		self.plotter_frame = wx.Frame(self.parent, -1, self.parent.Title[:-len(' - Data Explorer')])
 		self.plotter_frame.SetSize((800, 800))
-		self.plotter = Plot(self.plotter_frame, heatmap=True)
+		self.plotter = Plot(self.plotter_frame, heatmap=True, min=str(min), max=str(max))
 
-		figure = self.plotter.figure
-		axes = self.plotter.axes
-		
-		pc = axes.pcolormesh(pivotted_data.columns, pivotted_data.index, pivotted_data)
-		axes.set_xlabel(self.x, size=14)
-		axes.set_ylabel(self.y, size=14)
-
-		cbar = figure.colorbar(pc)
-		cbar.set_label(self.z)
+		self.plotter.make_plot(self.x, self.y, self.z, pivotted_data)
 
 		self.plotter_frame.Show()
 		self.plotter_frame.Raise()
